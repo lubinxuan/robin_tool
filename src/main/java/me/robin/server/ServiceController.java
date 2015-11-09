@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.BindException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +27,8 @@ public class ServiceController {
 
     private ServerSocket server;
 
+    private Timer timer = new Timer("ServerSocketDaemonThread");
+
     public ServiceController(int port, CommandHandler commandHandler) {
         this.port = port;
         this.commandHandler = commandHandler == null ? new CommandHandler.Basehandler() : commandHandler;
@@ -34,7 +37,7 @@ public class ServiceController {
 
     class Daemon implements Runnable {
         public void run() {
-            new Timer("ServerSocketDaemonThread").schedule(new TimerTask() {
+            timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     if (null == controllerThread || !controllerThread.isAlive()) {
@@ -89,12 +92,17 @@ public class ServiceController {
                         client.start();
                     }
                 } catch (Exception e) {
-                    logger.error("{}", e.toString());
-                    if (null != server) {
-                        try {
-                            server.close();
-                        } catch (Exception ignored) {
+                    if (e instanceof BindException) {
+                        logger.error("端口 {} 已被占用", port);
+                        timer.cancel();
+                    } else {
+                        logger.error("{}", e.toString());
+                        if (null != server) {
+                            try {
+                                server.close();
+                            } catch (Exception ignored) {
 
+                            }
                         }
                     }
                 }
