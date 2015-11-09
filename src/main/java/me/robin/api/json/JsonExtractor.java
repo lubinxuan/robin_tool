@@ -65,13 +65,18 @@ public class JsonExtractor extends DataExtractor {
         JSONObject result = new JSONObject();
         for (Entity entity : context.getEntityList()) {
             if (entity instanceof CombineEntity) {
+                CombineEntity ce = (CombineEntity) entity;
                 StringBuilder sb = new StringBuilder();
-                for (String key:((CombineEntity) entity).getMappings()){
-                    Object val = PathReader.read(data, builder.eval(entity.mapping()));
+                for (String key : ce.getMappings()) {
+                    Object val = PathReader.read(data, builder.eval(key));
                     if (null != val) {
-
+                        if (sb.length() > 0) {
+                            sb.append(ce.getJoin());
+                        }
+                        sb.append(val);
                     }
                 }
+                result.put(entity.key(), entity.value(sb.toString()));
             } else {
                 Object val = PathReader.read(data, builder.eval(entity.mapping()));
                 if (null != val) {

@@ -23,4 +23,8 @@ public class CombineEntity extends StringEntity{
     public String[] getMappings() {
         return mappings;
     }
+
+    public String getJoin() {
+        return join;
+    }
 }

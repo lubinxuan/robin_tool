@@ -1,0 +1,50 @@
+package me.robin.hbase;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Created by Lubin.Xuan on 2015/1/27.
+ * ie.
+ */
+public class HBaseTableOP {
+
+    private static final Logger logger = LoggerFactory.getLogger(HBaseTableOP.class);
+
+    public static boolean createTable(Configuration configuration, String tableName, String[] familySet) throws Exception {
+        HBaseAdmin hBaseAdmin = new HBaseAdmin(configuration);
+        if (!hBaseAdmin.tableExists(tableName)) {
+            HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
+            int validFamilies = 0;
+            for (String family : familySet) {
+                if(null==family||family.trim().length()<1){
+                    continue;
+                }
+                validFamilies++;
+                tableDescriptor.addFamily(new HColumnDescriptor(family.trim()));
+            }
+            if(validFamilies<1){
+                throw new IllegalArgumentException("HBase family required!!!!");
+            }
+            hBaseAdmin.createTable(tableDescriptor);
+            return true;
+        } else {
+            logger.info("table [{}] already exists......", tableName);
+        }
+        return false;
+    }
+
+    public static void deleteTable(Configuration configuration, String tableName) throws Exception {
+        HBaseAdmin hAdmin = new HBaseAdmin(configuration);
+        if (hAdmin.tableExists(tableName)) {
+            hAdmin.disableTable(tableName);
+            hAdmin.deleteTable(tableName);
+        } else {
+            logger.info("table [{}] not exists......", tableName);
+        }
+    }
+}

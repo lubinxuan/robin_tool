@@ -30,7 +30,7 @@ public class XmlExtractor extends JsonExtractor {
         }
     }
 
-    private String toJson(String xml) {
+    public static String toJson(String xml) {
         StringReader input = new StringReader(xml);
         StringWriter output = new StringWriter();
         JsonXMLConfig config = new JsonXMLConfigBuilder()
