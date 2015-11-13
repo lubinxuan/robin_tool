@@ -47,7 +47,7 @@ public class HBaseDataFetchComponent extends SearchComponent {
         IndexSchema indexSchema = req.getSchema();
         SolrCore core = req.getCore();
         String coreName = SolrHBaseUtils.getCoreAliens(core.getName());
-        logger.info("req info {}", req);
+        logger.debug("req info {}", req);
         Integer shardPurpose = req.getParams().getInt("shards.purpose");
         rb.addDebugInfo(CORE_NAME, coreName);
         if (null != shardPurpose) {
@@ -115,7 +115,7 @@ public class HBaseDataFetchComponent extends SearchComponent {
             return;
         }
 
-        logger.info("开始HBase 获取数据 ......{} {}", coreName, solrReq.getSearcher().getCore().getName());
+        logger.debug("开始HBase 获取数据 ......{} {}", coreName, solrReq.getSearcher().getCore().getName());
 
         boolean isAllField = false;
 
@@ -157,11 +157,11 @@ public class HBaseDataFetchComponent extends SearchComponent {
         }
 
 
-        logger.info("需要返回的字段 {} {} {}", filedFilter, isAllField, filedFilter);
+        logger.debug("需要返回的字段 {} {} {}", filedFilter, isAllField, filedFilter);
 
         Map<String, Map<String, Object>> hBaseData = SolrHBaseUtils.getHBaseDataByRowKey(hBaseSolrData, schemaFieldMap, filedFilter, uniqueKeySet);
 
-        logger.info("{} HBase 获取数据耗时 ......{} {} {}", Thread.currentThread(), coreName, System.currentTimeMillis() - start, hBaseData);
+        logger.debug("{} HBase 获取数据耗时 ......{} {} {}", Thread.currentThread(), coreName, System.currentTimeMillis() - start, hBaseData);
 
         HBaseDataThreadUtil.data(hBaseData, docMap, schemaFieldMap.keySet());
     }

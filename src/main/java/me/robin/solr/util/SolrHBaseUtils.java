@@ -57,7 +57,7 @@ public class SolrHBaseUtils {
     private static final String CORE_NAME_SPILT = "_shard";
 
     public static Map<String, Map<String, Object>> getHBaseDataByRowKey(HBaseSolrData hBaseSolrData, Map<String, SchemaField> schemaFieldMap, Set<String> filedFilter, Set<String> docIdSet) {
-        logger.info("从HBase 查询 返回 字段 {}", filedFilter);
+        logger.debug("从HBase 查询 返回 字段 {}", filedFilter);
         QualifierSet qualifierSet = new QualifierSet(filedFilter);
         HBaseMapper<Map<String, Object>> baseMapper = (rowKey, dataMap) -> {
             Map<String, Object> resultMap = new HashMap<>();

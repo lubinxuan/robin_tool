@@ -52,7 +52,7 @@ public abstract class MyHighlightComponent extends HighlightComponent {
             field.setAccessible(true);
             field.set(this, highlighter);
             field.setAccessible(false);
-            logger.info("高亮组件!!!{}", highlighter);
+            logger.debug("高亮组件!!!{}", highlighter);
         } catch (Throwable e) {
             logger.error("设置高亮组件异常!!!! 系统将退出", e);
             System.exit(-1);

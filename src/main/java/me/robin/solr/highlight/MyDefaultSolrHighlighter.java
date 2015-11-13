@@ -45,9 +45,9 @@ public class MyDefaultSolrHighlighter extends DefaultSolrHighlighter {
                     }
                 }
             }
-            logger.info("{} {} {}", fieldName, result, data);
+            logger.debug("{} {} {}", fieldName, result, data);
         } else {
-            logger.info("{} {}", fieldName, result);
+            logger.debug("{} {}", fieldName, result);
         }
         return result;
     }

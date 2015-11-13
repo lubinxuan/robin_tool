@@ -60,7 +60,7 @@ class HBaseUpdateProcessor extends UpdateRequestProcessor {
     @Override
     public void processAdd(AddUpdateCommand cmd) throws IOException {
         if (processRequired) {
-            logger.info("solr doc add indexId:{}", cmd.getIndexedId());
+            logger.debug("solr doc add indexId:{}", cmd.getIndexedId());
             hBaseStore.add(cmd);
             adds++;
         }
@@ -71,7 +71,7 @@ class HBaseUpdateProcessor extends UpdateRequestProcessor {
     public void processDelete(DeleteUpdateCommand cmd) throws IOException {
         if (processRequired) {
             if (cmd.isDeleteById()) {
-                logger.info("solr doc delete indexId:{}", cmd.getIndexedId());
+                logger.debug("solr doc delete indexId:{}", cmd.getIndexedId());
                 hBaseStore.delete(cmd);
             }
             //todo delete by query have no idea
@@ -88,7 +88,7 @@ class HBaseUpdateProcessor extends UpdateRequestProcessor {
             } catch (Throwable e) {
                 throw new IOException(e.getCause());
             }
-            logger.info("process doc add:{}  del:{}", adds, dels);
+            logger.debug("process doc add:{}  del:{}", adds, dels);
         }
         super.finish();
     }

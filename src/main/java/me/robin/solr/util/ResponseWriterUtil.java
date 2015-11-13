@@ -31,12 +31,12 @@ public class ResponseWriterUtil {
         SolrDocument out = new SolrDocument();
         String uniqueKey = doc.get(schema.getUniqueKeyField().getName());
         Map<String, Object> data = HBaseDataThreadUtil.getDoc(uniqueKey);
-        logger.info("{}  数据 doc hbase {} {}", Thread.currentThread(), uniqueKey, data);
+        logger.debug("{}  数据 doc hbase {} {}", Thread.currentThread(), uniqueKey, data);
         if (null == data || data.isEmpty()) {
             for (IndexableField f : doc.getFields()) {
                 // Make sure multivalued fields are represented as lists
                 Object existing = out.get(f.name());
-                logger.info("solr 值 {}", f);
+                logger.debug("solr 值 {}", f);
                 if (existing == null) {
                     SchemaField sf = schema.getFieldOrNull(f.name());
                     if (sf != null && sf.multiValued()) {
@@ -59,7 +59,7 @@ public class ResponseWriterUtil {
                 }
                 Object existing = out.get(f);
                 IndexableField idf = doc.getField(f);
-                logger.info("数据 doc hbase {} {}", f, sf);
+                logger.debug("数据 doc hbase {} {}", f, sf);
                 if (null != idf) {
                     if (existing == null) {
                         if (sf.multiValued()) {
