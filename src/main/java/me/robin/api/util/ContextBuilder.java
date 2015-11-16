@@ -79,10 +79,10 @@ public class ContextBuilder {
     }
 
     public Context build(String rowPath) {
-        return new Context(rowPath, el);
+        return new Context(rowPath, new ArrayList<>(el));
     }
 
     public Context build() {
-        return new Context(el);
+        return new Context(new ArrayList<>(el));
     }
 }
