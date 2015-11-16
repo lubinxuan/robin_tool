@@ -74,6 +74,10 @@ public class ContextBuilder {
         return combine(key, mappings, null);
     }
 
+    public void reset() {
+        el.clear();
+    }
+
     public Context build(String rowPath) {
         return new Context(rowPath, el);
     }
