@@ -15,10 +15,19 @@ public class HBaseDataThreadUtil {
         Map<Integer, String> dataMap = Collections.emptyMap();
         Set<String> field = Collections.emptySet();
 
+        private HBaseRequestInfo() {
+        }
+
         public HBaseRequestInfo(Map<String, Map<String, Object>> data, Map<Integer, String> dataMap, Set<String> field) {
-            this.data = data;
-            this.dataMap = dataMap;
-            this.field = field;
+            if (null != data) {
+                this.data = data;
+            }
+            if (null != dataMap) {
+                this.dataMap = dataMap;
+            }
+            if (null != field) {
+                this.field = field;
+            }
         }
 
         public Map<String, Map<String, Object>> getData() {
@@ -34,7 +43,7 @@ public class HBaseDataThreadUtil {
         }
     }
 
-    private static HBaseRequestInfo EMPTY = new HBaseRequestInfo(Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
+    private static HBaseRequestInfo EMPTY = new HBaseRequestInfo();
 
     private static final ThreadLocal<HBaseRequestInfo> H_BASE_REQUEST_INFO_THREAD_LOCAL = new ThreadLocal<>();
 
