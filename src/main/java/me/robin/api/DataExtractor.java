@@ -45,7 +45,7 @@ public abstract class DataExtractor {
 
     public static JSONObject readJSONFirst(JSON source, Context context) {
         List<JSONObject> readData = ((JsonExtractor) json)._readJSON(source, context);
-        return null != readData && !readData.isEmpty() ? readData.get(0) : null;
+        return null != readData && !readData.isEmpty() ? readData.get(0) : new JSONObject();
     }
 
 }
