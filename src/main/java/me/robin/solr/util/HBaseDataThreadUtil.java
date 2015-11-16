@@ -9,56 +9,72 @@ import java.util.Set;
  * ie.
  */
 public class HBaseDataThreadUtil {
-    private static final ThreadLocal<Map<String, Map<String, Object>>> DATA = new ThreadLocal<>();
-    private static final ThreadLocal<Map<Integer, String>> DATA_MAP = new ThreadLocal<>();
-    private static final ThreadLocal<Set<String>> FIELD = new ThreadLocal<>();
+
+    private static class HBaseRequestInfo {
+        Map<String, Map<String, Object>> data = Collections.emptyMap();
+        Map<Integer, String> dataMap = Collections.emptyMap();
+        Set<String> field = Collections.emptySet();
+
+        public HBaseRequestInfo(Map<String, Map<String, Object>> data, Map<Integer, String> dataMap, Set<String> field) {
+            this.data = data;
+            this.dataMap = dataMap;
+            this.field = field;
+        }
+
+        public Map<String, Map<String, Object>> getData() {
+            return data;
+        }
+
+        public Map<Integer, String> getDataMap() {
+            return dataMap;
+        }
+
+        public Set<String> getField() {
+            return field;
+        }
+    }
+
+    private static HBaseRequestInfo EMPTY = new HBaseRequestInfo(Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
+
+    private static final ThreadLocal<HBaseRequestInfo> H_BASE_REQUEST_INFO_THREAD_LOCAL = new ThreadLocal<>();
 
     public static void data(Map<String, Map<String, Object>> data, Map<Integer, String> data_map, Set<String> field) {
-        DATA.set(Collections.unmodifiableMap(data));
-        DATA_MAP.set(Collections.unmodifiableMap(data_map));
-        FIELD.set(field);
+        H_BASE_REQUEST_INFO_THREAD_LOCAL.set(new HBaseRequestInfo(data, data_map, field));
+    }
+
+    private static HBaseRequestInfo get() {
+        HBaseRequestInfo curr = H_BASE_REQUEST_INFO_THREAD_LOCAL.get();
+        if (null == curr) {
+            return EMPTY;
+        } else {
+            return curr;
+        }
     }
 
     public static Set<String> field() {
-        return FIELD.get();
+        return get().getField();
     }
 
     public static Map<String, Map<String, Object>> data() {
-        return DATA.get();
+        return get().getData();
     }
 
     public static Map<String, Object> getDoc(String uniqueKey) {
-        Map<String, Map<String, Object>> data = DATA.get();
-        if (null != data) {
-            return data.get(uniqueKey);
-        } else {
-            return null;
-        }
+        return get().getData().get(uniqueKey);
     }
 
     public static Map<String, Object> getDoc(int id) {
 
-        Map<Integer, String> idMap = DATA_MAP.get();
-        if (null == idMap) {
+        String uid = get().getDataMap().get(id);
+        if (null == uid) {
             return null;
-        } else {
-            String uid = DATA_MAP.get().get(id);
-            if (null == uid) {
-                return null;
-            }
-            Map<String, Map<String, Object>> data = DATA.get();
-            if (null != data) {
-                return data.get(uid);
-            } else {
-                return null;
-            }
         }
+        Map<String, Map<String, Object>> data = get().getData();
+        return data.get(uid);
     }
 
     public static void clear() {
-        DATA.remove();
-        FIELD.remove();
-        DATA_MAP.remove();
+        H_BASE_REQUEST_INFO_THREAD_LOCAL.remove();
     }
 
 }
