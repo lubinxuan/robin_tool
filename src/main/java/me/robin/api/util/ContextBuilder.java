@@ -15,6 +15,9 @@ public class ContextBuilder {
 
     Set<String> filter = new HashSet<>();
 
+    private ContextBuilder() {
+    }
+
     public static ContextBuilder builder() {
         return new ContextBuilder();
     }
