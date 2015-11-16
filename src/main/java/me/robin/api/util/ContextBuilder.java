@@ -76,6 +76,7 @@ public class ContextBuilder {
 
     public void reset() {
         el.clear();
+        filter.clear();
     }
 
     public Context build(String rowPath) {
