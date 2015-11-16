@@ -73,4 +73,12 @@ public class ContextBuilder {
     public ContextBuilder combine(String key, String[] mappings) {
         return combine(key, mappings, null);
     }
+
+    public Context build(String rowPath) {
+        return new Context(rowPath, el);
+    }
+
+    public Context build() {
+        return new Context(el);
+    }
 }
