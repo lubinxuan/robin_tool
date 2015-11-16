@@ -6,7 +6,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.postingshighlight.*;
 import org.apache.solr.common.params.HighlightParams;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.highlight.PostingsSolrHighlighter;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.IndexSchema;
 
