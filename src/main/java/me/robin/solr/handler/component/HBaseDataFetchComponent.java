@@ -51,7 +51,7 @@ public class HBaseDataFetchComponent extends SearchComponent {
         Integer shardPurpose = req.getParams().getInt("shards.purpose");
         rb.addDebugInfo(CORE_NAME, coreName);
         if (null != shardPurpose) {
-            process = (shardPurpose & ShardRequest.PURPOSE_GET_FIELDS & ShardRequest.PURPOSE_GET_HIGHLIGHTS) != 0;
+            process = (shardPurpose & ShardRequest.PURPOSE_GET_FIELDS) != 0 || (shardPurpose & ShardRequest.PURPOSE_GET_HIGHLIGHTS) != 0;
         } else {
             return;
         }
