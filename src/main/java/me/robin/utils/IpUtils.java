@@ -10,6 +10,7 @@ public class IpUtils {
     public static String getLocalIp() {
         try {
             String hostName = InetAddress.getLocalHost().getHostName();
+            System.out.println(hostName);
             return InetAddress.getByName(hostName).getHostAddress();
         } catch (Exception e) {
             return "Unknown Host";
