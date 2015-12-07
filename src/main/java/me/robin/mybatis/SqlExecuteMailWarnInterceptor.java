@@ -1,6 +1,7 @@
 package me.robin.mybatis;
 
 import me.robin.mail.SimpleMailSender;
+import me.robin.utils.IpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -31,21 +32,7 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlExecuteMailWarnInterceptor.class);
 
-    private static final String HOST;
-
-    static {
-        InetAddress s = null;
-        try {
-            s = InetAddress.getLocalHost();
-        } catch (UnknownHostException ignored) {
-        } finally {
-            if (null != s) {
-                HOST = s.getHostName() + "-" + s.getHostAddress();
-            } else {
-                HOST = "Unknown Host";
-            }
-        }
-    }
+    private static final String HOST = IpUtils.getLocalIp();
 
     private SimpleMailSender simpleMailSender = null;
     private List<String> recipients = new ArrayList<String>();
