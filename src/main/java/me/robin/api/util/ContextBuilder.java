@@ -11,9 +11,9 @@ import java.util.Set;
  * Created by Administrator on 2015/11/16.
  */
 public class ContextBuilder {
-    List<Entity> el = new ArrayList<>();
+    List<Entity> el = new ArrayList<Entity>();
 
-    Set<String> filter = new HashSet<>();
+    Set<String> filter = new HashSet<String>();
 
     private ContextBuilder() {
     }
@@ -83,10 +83,10 @@ public class ContextBuilder {
     }
 
     public Context build(String rowPath) {
-        return new Context(rowPath, new ArrayList<>(el));
+        return new Context(rowPath, new ArrayList<Entity>(el));
     }
 
     public Context build() {
-        return new Context(new ArrayList<>(el));
+        return new Context(new ArrayList<Entity>(el));
     }
 }

@@ -44,7 +44,7 @@ import org.apache.solr.search.SolrReturnFields;
  * This streams SolrDocuments from a DocList and applies transformer
  */
 public class DocsStreamer implements Iterator<SolrDocument> {
-    private static final Set<Class> KNOWN_TYPES = new HashSet<>();
+    private static final Set<Class> KNOWN_TYPES = new HashSet<Class>();
     private final DocList docs;
 
     private SolrIndexSearcher searcher;

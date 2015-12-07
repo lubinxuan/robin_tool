@@ -77,7 +77,7 @@ public class HBaseSolrData {
                 return Collections.emptyMap();
             }
             long start = System.currentTimeMillis();
-            Map<String, T> tList = new HashMap<>();
+            Map<String, T> tList = new HashMap<String, T>();
             //Result[] resultArr = table.get(getList);
             List<Result> resultList = BatchGet.get(getList, tableName, hTablePool);
             boolean isAllQualifier = qualifierSet.getQualifierSet().isEmpty();
@@ -103,7 +103,7 @@ public class HBaseSolrData {
             return null;
         }
 
-        Map<String, BytesRef> dataMap = new HashMap<>();
+        Map<String, BytesRef> dataMap = new HashMap<String, BytesRef>();
         if (isAllQualifier) {
             for (KeyValue kv : r.list()) {
                 dataMap.put(Bytes.toString(kv.getQualifier()), new BytesRef(kv.getValue()));
@@ -127,7 +127,7 @@ public class HBaseSolrData {
         if (null == dataMap || dataMap.isEmpty()) {
             return Collections.emptyList();
         }
-        List<Put> putList = new LinkedList<>();
+        List<Put> putList = new LinkedList<Put>();
         for (Map.Entry<String, ? extends Map<String, Object>> entry : dataMap.entrySet()) {
             if (StringUtils.isBlank(entry.getKey()) || null == entry.getValue() || entry.getValue().isEmpty()) {
                 continue;
@@ -142,7 +142,7 @@ public class HBaseSolrData {
         if (null == rowKeyColl || rowKeyColl.isEmpty()) {
             return Collections.emptyList();
         }
-        List<Delete> deleteList = new ArrayList<>();
+        List<Delete> deleteList = new ArrayList<Delete>();
 
         for (String rowKey : rowKeyColl) {
 
@@ -209,7 +209,7 @@ public class HBaseSolrData {
     private void batch(List<Put> addList, List<Delete> delList) throws Exception {
         HTableInterface hTableInterface = hTablePool.getTable(tableName);
         try {
-            List<Row> rowList = new ArrayList<>();
+            List<Row> rowList = new ArrayList<Row>();
             if(!addList.isEmpty()){
                 rowList.addAll(addList);
             }

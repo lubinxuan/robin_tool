@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +30,22 @@ import java.util.concurrent.Executors;
 public class SqlExecuteMailWarnInterceptor implements Interceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlExecuteMailWarnInterceptor.class);
+
+    private static final String HOST;
+
+    static {
+        InetAddress s = null;
+        try {
+            s = InetAddress.getLocalHost();
+        } catch (UnknownHostException ignored) {
+        } finally {
+            if (null != s) {
+                HOST = s.getHostName() + "-" + s.getHostAddress();
+            } else {
+                HOST = "Unknown Host";
+            }
+        }
+    }
 
     private SimpleMailSender simpleMailSender = null;
     private List<String> recipients = new ArrayList<String>();
@@ -116,6 +134,7 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
                 OutputStream outputStream = new ByteArrayOutputStream();
                 try {
                     final StringBuilder content = new StringBuilder("SQL异常报警!!!<br/>");
+                    content.append("服务器:").append(HOST).append("<br/>");
                     content.append("配置文件:").append(mapperFile).append("<br/>");
                     content.append("方法:").append(method).append("<br/>");
                     content.append("异常发生次数:").append(warningLog.errorCount()).append("<br/>");
