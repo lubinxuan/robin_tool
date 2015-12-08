@@ -1,9 +1,6 @@
 package me.robin.api.util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Lubin.Xuan on 2015/6/12.
@@ -85,13 +82,29 @@ public class Path {
     }
 
     public static class Builder {
-        private Map<String, Path[]> cache = new HashMap<String, Path[]>();
+
+        private int cache_size = 0;
+
+        private Map<String, Path[]> cache = new LinkedHashMap<String, Path[]>() {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, Path[]> entry) {
+                return size() > cache_size;
+            }
+        };
+
+        public Builder() {
+        }
+
+        public Builder(int cache_size) {
+            this.cache_size = cache_size;
+        }
 
         public Path[] eval(String path) {
             if (!cache.containsKey(path)) {
                 synchronized (this) {
                     if (!cache.containsKey(path)) {
                         cache.put(path, Path.eval(path));
+                        cache_size++;
                     }
                 }
             }
