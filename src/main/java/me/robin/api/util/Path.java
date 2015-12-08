@@ -83,7 +83,7 @@ public class Path {
 
     public static class Builder {
 
-        private int cache_size = 0;
+        private int cache_size = 1000;
 
         private Map<String, Path[]> cache = new LinkedHashMap<String, Path[]>() {
             @Override
