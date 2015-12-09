@@ -1,7 +1,6 @@
 package me.robin.solr.update.processor;
 
-import me.robin.hbase.CollectionStore;
-import me.robin.hbase.HBaseSolrData;
+import me.robin.solr.util.HBaseSolrData;
 import me.robin.solr.util.SolrHBaseStore;
 import me.robin.solr.util.SolrHBaseUtils;
 import me.robin.solr.util.UpdateUtil;
@@ -46,7 +45,7 @@ class HBaseUpdateProcessor extends UpdateRequestProcessor {
             hBaseStore = SolrHBaseUtils.isHBaseStoreCore(core);
             logger.debug("存储 Core:{} HBaseStore:{}", core, hBaseStore);
             if (hBaseStore) {
-                HBaseSolrData hBaseSolrData = CollectionStore.get(core);
+                HBaseSolrData hBaseSolrData = SolrHBaseUtils.get(core, req.getCore().getSolrConfig());
                 if (null == hBaseSolrData) {
                     logger.warn("存储 Core:{} No HBaseSolrData initialize", core);
                     return;

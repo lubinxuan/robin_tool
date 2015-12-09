@@ -1,5 +1,6 @@
 package me.robin.hbase;
 
+import me.robin.solr.util.HBaseSolrData;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Scan;

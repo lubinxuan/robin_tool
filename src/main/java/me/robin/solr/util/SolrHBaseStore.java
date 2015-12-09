@@ -1,8 +1,8 @@
 package me.robin.solr.util;
 
-import me.robin.hbase.HBaseSolrData;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.SolrInputField;
+import org.apache.solr.core.SolrConfig;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.SchemaField;
 import org.apache.solr.update.AddUpdateCommand;
@@ -61,9 +61,12 @@ public class SolrHBaseStore {
     //todo sendIndexData to HBase 暂时不处理删除操作
     public void sendHBase() throws Exception {
 
+        SolrConfig solrConfig = req.getCore().getSolrConfig();
+        RowKeyGenerator keyGenerator = SolrHBaseUtils.rowKeyGenerator(solrConfig);
+
         logger.debug("{}", this);
 
-        Map<String, Map<String, Object>> inputDataMap = new HashMap<>();
+        Map<byte[], Map<String, Object>> inputDataMap = new HashMap<>();
 
         if (!solrDocList.isEmpty()) {
 
@@ -98,17 +101,17 @@ public class SolrHBaseStore {
                     }
 
                     if (!dataItem.isEmpty()) {
-                        inputDataMap.put(uniqueKeyValue.trim(), dataItem);
+                        inputDataMap.put(keyGenerator.rowKey(uniqueKeyValue.trim()), dataItem);
                     }
                 }
             }
         }
 
-        Set<String> idSet = new HashSet<>();
+        Set<byte[]> idSet = new HashSet<>();
 
         if (!uniqueIdDel.isEmpty()) {
 
-            idSet.addAll(uniqueIdDel.stream().filter(id -> null != id && id.trim().length() > 0).collect(Collectors.toList()));
+            idSet.addAll(uniqueIdDel.stream().filter(id -> null != id && id.trim().length() > 0).map(keyGenerator::rowKey).collect(Collectors.toList()));
 
         }
 

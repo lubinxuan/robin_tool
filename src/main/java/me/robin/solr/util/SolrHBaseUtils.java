@@ -1,20 +1,17 @@
 package me.robin.solr.util;
 
-import me.robin.hbase.HBaseMapper;
-import me.robin.hbase.HBaseSolrData;
-import me.robin.hbase.IObjectSerializer;
-import me.robin.hbase.QualifierSet;
+import me.robin.hbase.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.lucene.util.BytesRef;
+import org.apache.solr.core.SolrConfig;
 import org.apache.solr.schema.SchemaField;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by Lubin.Xuan on 2015/1/28.
@@ -24,7 +21,7 @@ public class SolrHBaseUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(SolrHBaseUtils.class);
 
-    private static final Set<String> HABSE_STORE_CORE = new HashSet<>();
+    private static final Set<String> H_BASE_STORE_CORE = new HashSet<>();
 
     private static final boolean ALL_CORE_HABSE;
 
@@ -33,7 +30,7 @@ public class SolrHBaseUtils {
         if (null != core_in_hbase && core_in_hbase.trim().length() > 0) {
             for (String core : core_in_hbase.split(",")) {
                 if (null != core && core.trim().length() > 0) {
-                    HABSE_STORE_CORE.add(core.trim());
+                    H_BASE_STORE_CORE.add(core.trim());
                 }
             }
         }
@@ -50,13 +47,13 @@ public class SolrHBaseUtils {
     }
 
     public static boolean isHBaseStoreCore(String coreName) {
-        //return ALL_CORE_HABSE || HABSE_STORE_CORE.contains(getCoreAliens(coreName));
+        //return ALL_CORE_HABSE || H_BASE_STORE_CORE.contains(getCoreAliens(coreName));
         return true;
     }
 
     private static final String CORE_NAME_SPILT = "_shard";
 
-    public static Map<String, Map<String, Object>> getHBaseDataByRowKey(HBaseSolrData hBaseSolrData, Map<String, SchemaField> schemaFieldMap, Set<String> filedFilter, Set<String> docIdSet) {
+    public static Map<String, Map<String, Object>> getHBaseDataByRowKey(HBaseSolrData hBaseSolrData, Map<String, SchemaField> schemaFieldMap, Set<String> filedFilter, Set<String> docIdSet, RowKeyGenerator keyGenerater) {
         logger.debug("从HBase 查询 返回 字段 {}", filedFilter);
         QualifierSet qualifierSet = new QualifierSet(filedFilter);
         HBaseMapper<Map<String, Object>> baseMapper = (rowKey, dataMap) -> {
@@ -90,10 +87,71 @@ public class SolrHBaseUtils {
                 }
                 resultMap.put(fieldName, realValue);
             }
-            return new HBaseSolrData.Entry<>(rowKey, resultMap);
+            return new HBaseSolrData.Entry<>(keyGenerater.rowKey(rowKey), resultMap);
         };
 
-        return hBaseSolrData.getByRowKeyColl(docIdSet, baseMapper, qualifierSet);
+        Collection<byte[]> rowKyeByte = docIdSet.stream().map(keyGenerater::rowKey).collect(Collectors.toCollection(ArrayList::new));
+
+        return hBaseSolrData.getByRowKeyColl(rowKyeByte, baseMapper, qualifierSet);
+    }
+
+
+    private static final Map<Integer, RowKeyGenerator> KEY_GENERATOR_CACHE = new ConcurrentHashMap<>();
+
+    public static RowKeyGenerator rowKeyGenerator(SolrConfig config) {
+        final int regionCount = regionCountDefine(config);
+        return rowKeyGenerator(regionCount);
+    }
+
+    public static RowKeyGenerator rowKeyGenerator(final int regionCount) {
+        return KEY_GENERATOR_CACHE.compute(regionCount, (integer, rowKeyGenerator) -> {
+            if (null == rowKeyGenerator) {
+                return new RowKeyGenerator() {
+                    @Override
+                    public byte[] rowKey(String id) {
+                        byte[] key_b = Bytes.toBytes(id);
+                        /*if (key_b.length < 4) {
+                            byte[] _key_b = Bytes.padHead(key_b, 4 - key_b.length);
+                            int _id = Bytes.toInt(_key_b) % regionCount;
+                            return Bytes.add(Bytes.toBytes(_id), key_b);
+                        } else {*/
+                        int _id = id.hashCode() % regionCount;
+                        return Bytes.add(Bytes.toBytes(_id), key_b);
+                        //}
+                    }
+
+                    @Override
+                    public String rowKey(byte[] byteData) {
+                        byte[] key = Bytes.tail(byteData, byteData.length - 4);
+                        return Bytes.toString(key);
+                    }
+                };
+            }
+            return rowKeyGenerator;
+        });
+    }
+
+    private static int regionCountDefine(SolrConfig config) {
+        if (null == config) {
+            return 50;
+        } else {
+            return config.getInt("config/hbase/regionCount", 50);
+        }
+    }
+
+    public synchronized static HBaseSolrData get(String core, SolrConfig config) {
+        HBaseSolrData hBaseSolrData = CollectionStore.get(core);
+        if (null == hBaseSolrData && !CollectionStore.failCore(core)) {
+            int regionCount = regionCountDefine(config);
+            if (regionCount > 3) {
+                CollectionStore.initialize(core, regionCount);
+            } else {
+                CollectionStore.initialize(core);
+            }
+            return CollectionStore.get(core);
+        } else {
+            return hBaseSolrData;
+        }
     }
 
 }

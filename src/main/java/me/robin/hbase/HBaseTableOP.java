@@ -4,6 +4,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,13 +22,13 @@ public class HBaseTableOP {
             HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
             int validFamilies = 0;
             for (String family : familySet) {
-                if(null==family||family.trim().length()<1){
+                if (null == family || family.trim().length() < 1) {
                     continue;
                 }
                 validFamilies++;
                 tableDescriptor.addFamily(new HColumnDescriptor(family.trim()));
             }
-            if(validFamilies<1){
+            if (validFamilies < 1) {
                 throw new IllegalArgumentException("HBase family required!!!!");
             }
             hBaseAdmin.createTable(tableDescriptor);
@@ -37,6 +38,43 @@ public class HBaseTableOP {
         }
         return false;
     }
+
+    public static boolean createTable(Configuration configuration, String tableName, String[] familySet, int regionCount) throws Exception {
+        HBaseAdmin hBaseAdmin = new HBaseAdmin(configuration);
+        if (!hBaseAdmin.tableExists(tableName)) {
+            HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
+            int validFamilies = 0;
+            for (String family : familySet) {
+                if (null == family || family.trim().length() < 1) {
+                    continue;
+                }
+                validFamilies++;
+                tableDescriptor.addFamily(new HColumnDescriptor(family.trim()));
+            }
+            if (validFamilies < 1) {
+                throw new IllegalArgumentException("HBase family required!!!!");
+            }
+            if (regionCount > 3) {
+                byte[][] spiltKeys = calcSplitKeys(regionCount);
+                hBaseAdmin.createTable(tableDescriptor, spiltKeys);
+            } else {
+                hBaseAdmin.createTable(tableDescriptor);
+            }
+            return true;
+        } else {
+            logger.info("table [{}] already exists......", tableName);
+        }
+        return false;
+    }
+
+    public static byte[][] calcSplitKeys(int regionCount) {
+        byte[][] splitKeys = new byte[regionCount - 1][];
+        for (int i = 1; i < regionCount; i++) {
+            splitKeys[i - 1] = Bytes.toBytes(i);
+        }
+        return splitKeys;
+    }
+
 
     public static void deleteTable(Configuration configuration, String tableName) throws Exception {
         HBaseAdmin hAdmin = new HBaseAdmin(configuration);

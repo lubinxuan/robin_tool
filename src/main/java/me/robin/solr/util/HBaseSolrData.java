@@ -1,5 +1,6 @@
-package me.robin.hbase;
+package me.robin.solr.util;
 
+import me.robin.hbase.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.KeyValue;
@@ -9,7 +10,6 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -29,6 +29,9 @@ public class HBaseSolrData {
 
     public static final String DATA_FAMILY = "indexData";
 
+    private static final String TABLE_PREFIX = System.getProperty("table.prefix", "");
+    private static final String TABLE_SUFFIX = System.getProperty("table.suffix", "_solr_store_data");
+
     private static final byte[] DATA_FAMILY_BYTE = Bytes.toBytes(DATA_FAMILY);
 
     private HTablePool hTablePool;
@@ -39,14 +42,23 @@ public class HBaseSolrData {
         this.configuration = configuration;
         this.collectionName = collectionName.trim();
         this.tableName = getTableName(collectionName.trim());
-        createTable();
         hTablePool = new HTablePool(configuration, 512);
     }
 
-    private void createTable() {
+    public HBaseSolrData(Configuration configuration, String collectionName, int regionCount) throws Exception {
+        assert StringUtils.isNotBlank(collectionName) : "必须指定Solr Collection 名称";
+        assert null != configuration : "必须指定HBase基础配置信息";
+        this.configuration = configuration;
+        this.collectionName = collectionName.trim();
+        this.tableName = getTableName(collectionName.trim());
+        createTable(regionCount);
+        hTablePool = new HTablePool(configuration, 512);
+    }
+
+    private void createTable(int regionCount) {
         logger.info("start create table for collection [{}]......", this.collectionName);
         try {
-            if (HBaseTableOP.createTable(configuration, tableName, new String[]{DATA_FAMILY})) {
+            if (HBaseTableOP.createTable(configuration, tableName, new String[]{DATA_FAMILY}, regionCount)) {
                 logger.info("success create table for collection [{}]......", this.collectionName);
             }
         } catch (Exception e) {
@@ -55,22 +67,22 @@ public class HBaseSolrData {
     }
 
     public static String getTableName(String coreName) {
-        return coreName + "_solr_store_data";
+        return TABLE_PREFIX + coreName + TABLE_SUFFIX;
     }
 
     /**
      * 单条件查询,根据rowkey查询唯一一条记录
      */
-    public <T extends Map<String, Object>> Map<String, T> getByRowKeyColl(Collection<String> rowKeyColl, HBaseMapper<T> mapper, QualifierSet qualifierSet) {
+    public <T extends Map<String, Object>> Map<String, T> getByRowKeyColl(Collection<byte[]> rowKeyColl, HBaseMapper<T> mapper, QualifierSet qualifierSet) {
         if (null == rowKeyColl || rowKeyColl.isEmpty()) {
             return Collections.emptyMap();
         }
         qualifierSet = null == qualifierSet ? new QualifierSet() : qualifierSet;
         try {
             List<Get> getList = new ArrayList<Get>();
-            for (String rowKey : rowKeyColl) {
-                if (StringUtils.isNotBlank(rowKey)) {
-                    getList.add(qualifierSet.fillQualifier(new Get(Bytes.toBytes(rowKey))));
+            for (byte[] rowKey : rowKeyColl) {
+                if (null != rowKey) {
+                    getList.add(qualifierSet.fillQualifier(new Get(rowKey)));
                 }
             }
             if (getList.isEmpty()) {
@@ -117,19 +129,19 @@ public class HBaseSolrData {
             }
         }
         if (!dataMap.isEmpty()) {
-            return mapper.mapper(Bytes.toString(r.getRow()), dataMap);
+            return mapper.mapper(r.getRow(), dataMap);
         } else {
             return null;
         }
     }
 
-    public List<Put> preparePut(Map<String, ? extends Map<String, Object>> dataMap) {
+    public List<Put> preparePut(Map<byte[], ? extends Map<String, Object>> dataMap) {
         if (null == dataMap || dataMap.isEmpty()) {
             return Collections.emptyList();
         }
         List<Put> putList = new LinkedList<Put>();
-        for (Map.Entry<String, ? extends Map<String, Object>> entry : dataMap.entrySet()) {
-            if (StringUtils.isBlank(entry.getKey()) || null == entry.getValue() || entry.getValue().isEmpty()) {
+        for (Map.Entry<byte[], ? extends Map<String, Object>> entry : dataMap.entrySet()) {
+            if (null == entry.getKey() || null == entry.getValue() || entry.getValue().isEmpty()) {
                 continue;
             }
             Put put = buildPut(entry.getKey(), entry.getValue());
@@ -138,15 +150,15 @@ public class HBaseSolrData {
         return putList;
     }
 
-    public List<Delete> prepareDelete(Collection<String> rowKeyColl) {
+    public List<Delete> prepareDelete(Collection<byte[]> rowKeyColl) {
         if (null == rowKeyColl || rowKeyColl.isEmpty()) {
             return Collections.emptyList();
         }
         List<Delete> deleteList = new ArrayList<Delete>();
 
-        for (String rowKey : rowKeyColl) {
+        for (byte[] rowKey : rowKeyColl) {
 
-            Delete delete = new Delete(Bytes.toBytes(rowKey));
+            Delete delete = new Delete(rowKey);
 
             deleteList.add(delete);
 
@@ -155,7 +167,7 @@ public class HBaseSolrData {
     }
 
 
-    public void insertData(Map<String, ? extends Map<String, Object>> dataMap) throws Exception {
+    public void insertData(Map<byte[], ? extends Map<String, Object>> dataMap) throws Exception {
         if (null == dataMap || dataMap.isEmpty()) {
             return;
         }
@@ -176,7 +188,7 @@ public class HBaseSolrData {
     }
 
 
-    public void deleteData(Collection<String> rowKeyColl) throws Exception {
+    public void deleteData(Collection<byte[]> rowKeyColl) throws Exception {
         if (null == rowKeyColl || rowKeyColl.isEmpty()) {
             return;
         }
@@ -196,13 +208,13 @@ public class HBaseSolrData {
         logger.info("删除HBase 数据: [{}] {} 耗时[{}]ms", deleteList.size(), deleteList, System.currentTimeMillis() - start);
     }
 
-    public void batch(Map<String, ? extends Map<String, Object>> dataMap,Collection<String> rowKeyColl) throws Exception {
+    public void batch(Map<byte[], ? extends Map<String, Object>> dataMap, Collection<byte[]> rowKeyColl) throws Exception {
         long start = System.currentTimeMillis();
         List<Put> putList = preparePut(dataMap);
         List<Delete> deleteList = prepareDelete(rowKeyColl);
         int add = putList.size(), del = deleteList.size();
         logger.info("开始更新HBase ...... add:[{}] del:[{}]", add, del);
-        batch(putList,deleteList);
+        batch(putList, deleteList);
         logger.info("更新HBase 完成 cost:[{}] ms...... add:[{}] del:[{}]", System.currentTimeMillis() - start, add, del);
     }
 
@@ -210,10 +222,10 @@ public class HBaseSolrData {
         HTableInterface hTableInterface = hTablePool.getTable(tableName);
         try {
             List<Row> rowList = new ArrayList<Row>();
-            if(!addList.isEmpty()){
+            if (!addList.isEmpty()) {
                 rowList.addAll(addList);
             }
-            if(!delList.isEmpty()){
+            if (!delList.isEmpty()) {
                 rowList.addAll(delList);
             }
             hTableInterface.batch(rowList);
@@ -222,8 +234,8 @@ public class HBaseSolrData {
         }
     }
 
-    private Put buildPut(String rowKey, Map<String, Object> data) {
-        Put put = new Put(Bytes.toBytes(rowKey));// 一个PUT代表一行数据，再NEW一个PUT表示第二行数据,每行一个唯一的ROWKEY，此处rowkey为put构造方法中传入的值
+    private Put buildPut(byte[] rowKey, Map<String, Object> data) {
+        Put put = new Put(rowKey);// 一个PUT代表一行数据，再NEW一个PUT表示第二行数据,每行一个唯一的ROWKEY，此处rowkey为put构造方法中传入的值
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             Object value = entry.getValue();
             byte[] byteValue = null;

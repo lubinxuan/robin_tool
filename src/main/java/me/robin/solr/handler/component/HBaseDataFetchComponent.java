@@ -1,12 +1,10 @@
 package me.robin.solr.handler.component;
 
 import me.robin.hbase.CollectionStore;
-import me.robin.hbase.HBaseSolrData;
-import me.robin.solr.util.HBaseDataThreadUtil;
-import me.robin.solr.util.SolrHBaseUtils;
-import me.robin.solr.util.SolrSchemeUtil;
+import me.robin.solr.util.*;
 import org.apache.lucene.document.Document;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.core.SolrConfig;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
@@ -106,7 +104,8 @@ public class HBaseDataFetchComponent extends SearchComponent {
         ReturnFields returnFields = solrRsp.getReturnFields();
 
         long start = System.currentTimeMillis();
-        HBaseSolrData hBaseSolrData = CollectionStore.get(coreName);
+        HBaseSolrData hBaseSolrData = SolrHBaseUtils.get(coreName, solrReq.getCore().getSolrConfig());
+
 
         if (null == hBaseSolrData) {
             return;
@@ -156,7 +155,10 @@ public class HBaseDataFetchComponent extends SearchComponent {
 
         logger.debug("需要返回的字段 {} {} {}", filedFilter, isAllField, filedFilter);
 
-        Map<String, Map<String, Object>> hBaseData = SolrHBaseUtils.getHBaseDataByRowKey(hBaseSolrData, schemaFieldMap, filedFilter, uniqueKeySet);
+        SolrConfig solrConfig = solrReq.getCore().getSolrConfig();
+        RowKeyGenerator keyGenerator = SolrHBaseUtils.rowKeyGenerator(solrConfig);
+
+        Map<String, Map<String, Object>> hBaseData = SolrHBaseUtils.getHBaseDataByRowKey(hBaseSolrData, schemaFieldMap, filedFilter, uniqueKeySet, keyGenerator);
 
         logger.debug("{} HBase 获取数据耗时 ......{} {} {}", Thread.currentThread(), coreName, System.currentTimeMillis() - start, hBaseData);
 
