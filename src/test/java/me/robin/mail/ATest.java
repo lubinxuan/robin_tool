@@ -12,6 +12,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 import org.jsoup.parser.XmlTreeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.util.HashMap;
@@ -96,16 +98,18 @@ public class ATest extends TestCase {
         return null;
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(ATest.class);
+
     public void testByteAdd() throws Exception {
         String id = "10cf36689d66d37d19db4d583c2b1f6e49a8f6e3";
         RowKeyGenerator keyGenerator = SolrHBaseUtils.rowKeyGenerator(100);
 
         Random random = new Random();
         HBaseSolrData solrData = SolrHBaseUtils.get("table_test_1", null);
-        CountDownLatch latch = new CountDownLatch(200);
+        CountDownLatch latch = new CountDownLatch(20);
         for (int k = 0; k < 20; k++) {
             new Thread(() -> {
-                for (int l = 0; l < 100; l++) {
+                for (int l = 0; l < 1000; l++) {
                     Map<byte[], Map<String, Object>> inputDataMap = new HashMap<>();
                     for (int i = 0; i < 1000; i++) {
                         Map<String, Object> d = new HashMap<>();
@@ -116,13 +120,12 @@ public class ATest extends TestCase {
                         String _id = toSha1Value("row" + System.currentTimeMillis() + random.nextInt(10000));
                         inputDataMap.put(keyGenerator.rowKey(_id), d);
                     }
-                    long st = System.currentTimeMillis();
                     try {
                         solrData.insertData(inputDataMap);
-                        System.out.println(Thread.currentThread().getName() + " 数据写入!!" + inputDataMap.size() + "       " + (System.currentTimeMillis() - st));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    logger.info("{}", l);
                 }
                 latch.countDown();
             }).start();

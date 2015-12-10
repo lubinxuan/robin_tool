@@ -115,7 +115,7 @@ public class SolrHBaseUtils {
                             int _id = Bytes.toInt(_key_b) % regionCount;
                             return Bytes.add(Bytes.toBytes(_id), key_b);
                         } else {*/
-                        int _id = id.hashCode() % regionCount;
+                        int _id = Math.abs(id.hashCode() % regionCount);
                         return Bytes.add(Bytes.toBytes(_id), key_b);
                         //}
                     }

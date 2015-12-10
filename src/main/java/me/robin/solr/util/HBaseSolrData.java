@@ -10,6 +10,7 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -172,19 +173,21 @@ public class HBaseSolrData {
             return;
         }
         List<Put> putList = preparePut(dataMap);
-        logger.info("开始将数据存入HBase ......data size[{}]", putList.size());
-        long start = System.currentTimeMillis();
+
         if (!putList.isEmpty()) {
-            HTableInterface hTableInterface = hTablePool.getTable(tableName);
+            long st = System.currentTimeMillis();
+            HTableInterface hTableInterface = getTableInterface();
+            logger.debug("开始将数据存入HBase ......data size[{}] table 接口获取耗时[{}] ms", putList.size(), System.currentTimeMillis() - st);
+            long start = System.currentTimeMillis();
             try {
                 hTableInterface.put(putList);
+                hTableInterface.flushCommits();
             } finally {
-                hTableInterface.close();
+                closeQuietly(hTableInterface);
             }
 
             logger.info("data[{}] HBase 数据存储耗时[{}]ms", putList.size(), System.currentTimeMillis() - start);
         }
-        logger.debug("HBase 数据存储 完成 ......");
     }
 
 
@@ -197,11 +200,12 @@ public class HBaseSolrData {
 
         List<Delete> deleteList = prepareDelete(rowKeyColl);
 
-        HTableInterface hTableInterface = hTablePool.getTable(tableName);
+        HTableInterface hTableInterface = getTableInterface();
         try {
             hTableInterface.delete(deleteList);
+            hTableInterface.flushCommits();
         } finally {
-            hTableInterface.close();
+            closeQuietly(hTableInterface);
         }
 
 
@@ -219,7 +223,7 @@ public class HBaseSolrData {
     }
 
     private void batch(List<Put> addList, List<Delete> delList) throws Exception {
-        HTableInterface hTableInterface = hTablePool.getTable(tableName);
+        HTableInterface hTableInterface = getTableInterface();
         try {
             List<Row> rowList = new ArrayList<Row>();
             if (!addList.isEmpty()) {
@@ -229,8 +233,9 @@ public class HBaseSolrData {
                 rowList.addAll(delList);
             }
             hTableInterface.batch(rowList);
+            hTableInterface.flushCommits();
         } finally {
-            hTableInterface.close();
+            closeQuietly(hTableInterface);
         }
     }
 
@@ -269,6 +274,25 @@ public class HBaseSolrData {
             put.add(DATA_FAMILY_BYTE, Bytes.toBytes(entry.getKey()), byteValue);
         }
         return put;
+    }
+
+    private HTableInterface getTableInterface() {
+        HTableInterface tableInterface = this.hTablePool.getTable(tableName);
+        tableInterface.setAutoFlush(false);
+        try {
+            tableInterface.setWriteBufferSize(20 * 1024 * 1024L);
+        } catch (IOException e) {
+            logger.error("设置WriteBufferSize 异常!!", e);
+        }
+        return tableInterface;
+    }
+
+    private static void closeQuietly(HTableInterface hTableInterface) {
+        try {
+            hTableInterface.close();
+        } catch (IOException e) {
+            logger.warn("HTable 关闭 异常!!! {}", e);
+        }
     }
 
     public static class Entry<T> {
