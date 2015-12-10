@@ -22,6 +22,7 @@
         <hadoop.version>2.2.0</hadoop.version>
         <hbase.version>0.94.2-cdh4.2.2</hbase.version>
         <jdk.version>1.8</jdk.version>
+        <maven.test.skip>true</maven.test.skip>
     </properties>
 
     <repositories>
