@@ -17,6 +17,8 @@ import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Administrator on 2015/10/27.
@@ -97,24 +99,44 @@ public class ATest extends TestCase {
     public void testByteAdd() throws Exception {
         String id = "10cf36689d66d37d19db4d583c2b1f6e49a8f6e3";
         RowKeyGenerator keyGenerator = SolrHBaseUtils.rowKeyGenerator(100);
-        Map<byte[], Map<String, Object>> inputDataMap = new HashMap<>();
+
         Random random = new Random();
-        for (int i = 0; i < 100000; i++) {
-            Map<String, Object> d = new HashMap<>();
-            for (int j = 0; j < 10; j++) {
-                d.put("field" + j, "value" + j);
-            }
-            //String _id = "row" + random.nextInt(100000);
-            String _id = toSha1Value("row" + random.nextInt(10000));
-            inputDataMap.put(keyGenerator.rowKey(_id),d);
+        HBaseSolrData solrData = SolrHBaseUtils.get("table_test_1", null);
+        CountDownLatch latch = new CountDownLatch(200);
+        for (int k = 0; k < 20; k++) {
+            new Thread(() -> {
+                for (int l = 0; l < 100; l++) {
+                    Map<byte[], Map<String, Object>> inputDataMap = new HashMap<>();
+                    for (int i = 0; i < 1000; i++) {
+                        Map<String, Object> d = new HashMap<>();
+                        for (int j = 0; j < 10; j++) {
+                            d.put("field" + j, "value" + System.currentTimeMillis() + j);
+                        }
+                        //String _id = "row" + random.nextInt(100000);
+                        String _id = toSha1Value("row" + System.currentTimeMillis() + random.nextInt(10000));
+                        inputDataMap.put(keyGenerator.rowKey(_id), d);
+                    }
+                    long st = System.currentTimeMillis();
+                    try {
+                        solrData.insertData(inputDataMap);
+                        System.out.println(Thread.currentThread().getName() + " 数据写入!!" + inputDataMap.size() + "       " + (System.currentTimeMillis() - st));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                latch.countDown();
+            }).start();
+
         }
 
 
         byte[] b = keyGenerator.rowKey(id);
         String i = keyGenerator.rowKey(b);
-        HBaseSolrData solrData = SolrHBaseUtils.get("table_test_1", null);
-        solrData.insertData(inputDataMap);
+
+
         System.out.println();
+
+        latch.await();
     }
 
     static {
@@ -123,7 +145,7 @@ public class ATest extends TestCase {
     }
 
     public void testCreateTable() throws Exception {
-        HBaseTableOP.deleteTable(Configure.getConfiguration(),"solr_core_table_test_1_data");
+        HBaseTableOP.deleteTable(Configure.getConfiguration(), "solr_core_table_test_1_data");
         CollectionStore.initialize("table_test_1", 100);
     }
 }
