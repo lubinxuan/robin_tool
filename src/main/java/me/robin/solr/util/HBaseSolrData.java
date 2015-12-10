@@ -28,7 +28,7 @@ public class HBaseSolrData {
 
     private String collectionName;
 
-    public static final String DATA_FAMILY = "indexData";
+    public static final String DATA_FAMILY = "d";
 
     private static final String TABLE_PREFIX = System.getProperty("table.prefix", "");
     private static final String TABLE_SUFFIX = System.getProperty("table.suffix", "_solr_store_data");
@@ -279,11 +279,6 @@ public class HBaseSolrData {
     private HTableInterface getTableInterface() {
         HTableInterface tableInterface = this.hTablePool.getTable(tableName);
         tableInterface.setAutoFlush(false);
-        try {
-            tableInterface.setWriteBufferSize(20 * 1024 * 1024L);
-        } catch (IOException e) {
-            logger.error("设置WriteBufferSize 异常!!", e);
-        }
         return tableInterface;
     }
 

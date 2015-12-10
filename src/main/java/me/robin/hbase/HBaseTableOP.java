@@ -85,4 +85,14 @@ public class HBaseTableOP {
             logger.info("table [{}] not exists......", tableName);
         }
     }
+
+
+    public static void enableTable(Configuration configuration, String tableName) throws Exception {
+        HBaseAdmin hAdmin = new HBaseAdmin(configuration);
+        if (hAdmin.tableExists(tableName)) {
+            hAdmin.enableTable(tableName);
+        } else {
+            logger.info("table [{}] not exists......", tableName);
+        }
+    }
 }
