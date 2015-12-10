@@ -1,5 +1,6 @@
 package me.robin.mybatis;
 
+import me.robin.Const;
 import me.robin.mail.SimpleMailSender;
 import me.robin.utils.IpUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +42,7 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
         Properties prop = new Properties();
         try {
             InputStream is = this.getClass().getClassLoader().getResourceAsStream("mybatis.properties");
-            BufferedReader bf = new BufferedReader(new InputStreamReader(is));
+            BufferedReader bf = new BufferedReader(new InputStreamReader(is, Const.UTF_8));
             prop.load(bf);
             bf.close();
         } catch (Throwable ignore) {
@@ -81,7 +82,7 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
         try {
             returnValue = invocation.proceed();
             try {
-                WARNING_LOG_MAP.remove(Base64.getEncoder().encodeToString(sql.getBytes()));
+                WARNING_LOG_MAP.remove(Base64.getEncoder().encodeToString(sql.getBytes(Const.UTF_8)));
             } catch (Throwable ignore) {
             }
         } catch (Throwable r) {
@@ -101,7 +102,7 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
         }
         SERVICE.execute(new Runnable() {
             public void run() {
-                String key = Base64.getEncoder().encodeToString(sql.getBytes());
+                String key = Base64.getEncoder().encodeToString(sql.getBytes(Const.UTF_8));
                 WarningLog warningLog = WARNING_LOG_MAP.get(key);
                 if (null == warningLog) {
                     synchronized (WARNING_LOG_MAP) {
@@ -118,7 +119,7 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
                     return;
                 }
 
-                OutputStream outputStream = new ByteArrayOutputStream();
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 try {
                     final StringBuilder content = new StringBuilder("SQL异常报警!!!<br/>");
                     content.append("服务器:").append(HOST).append("<br/>");
@@ -126,8 +127,8 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
                     content.append("方法:").append(method).append("<br/>");
                     content.append("异常发生次数:").append(warningLog.errorCount()).append("<br/>");
                     content.append("SQL:").append(sql).append("<br/>");
-                    r.printStackTrace(new PrintStream(outputStream));
-                    content.append(outputStream.toString().replaceAll("\n", "<br/>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;"));
+                    r.printStackTrace(new PrintStream(outputStream,false,Const._UTF_8));
+                    content.append(outputStream.toString(Const._UTF_8).replaceAll("\n", "<br/>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;"));
                     simpleMailSender.send(recipients, "SQL异常报警-" + method, content);
                 } catch (Throwable ignore) {
                 } finally {

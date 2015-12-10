@@ -1,13 +1,19 @@
 package me.robin.mail;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import jodd.http.HttpRequest;
 import junit.framework.TestCase;
 import me.robin.hbase.CollectionStore;
 import me.robin.hbase.Configure;
 import me.robin.hbase.HBaseTableOP;
+import me.robin.solr.util.HBaseMapper;
 import me.robin.solr.util.HBaseSolrData;
 import me.robin.solr.util.RowKeyGenerator;
 import me.robin.solr.util.SolrHBaseUtils;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.lucene.util.BytesRef;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
@@ -16,9 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -151,4 +155,5 @@ public class ATest extends TestCase {
         HBaseTableOP.enableTable(Configure.getConfiguration(), "solr_core_table_test_1_data");
         //CollectionStore.initialize("table_test_1", 100);
     }
+
 }

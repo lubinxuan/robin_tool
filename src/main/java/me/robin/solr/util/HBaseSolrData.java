@@ -3,6 +3,7 @@ package me.robin.solr.util;
 import me.robin.hbase.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HRegionLocation;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -26,6 +27,8 @@ public class HBaseSolrData {
 
     private String tableName;
 
+    private byte[] tableNameByte;
+
     private String collectionName;
 
     public static final String DATA_FAMILY = "d";
@@ -43,17 +46,13 @@ public class HBaseSolrData {
         this.configuration = configuration;
         this.collectionName = collectionName.trim();
         this.tableName = getTableName(collectionName.trim());
+        this.tableNameByte = Bytes.toBytes(this.tableName);
         hTablePool = new HTablePool(configuration, 512);
     }
 
     public HBaseSolrData(Configuration configuration, String collectionName, int regionCount) throws Exception {
-        assert StringUtils.isNotBlank(collectionName) : "必须指定Solr Collection 名称";
-        assert null != configuration : "必须指定HBase基础配置信息";
-        this.configuration = configuration;
-        this.collectionName = collectionName.trim();
-        this.tableName = getTableName(collectionName.trim());
+        this(configuration, collectionName);
         createTable(regionCount);
-        hTablePool = new HTablePool(configuration, 512);
     }
 
     private void createTable(int regionCount) {
@@ -74,25 +73,41 @@ public class HBaseSolrData {
     /**
      * 单条件查询,根据rowkey查询唯一一条记录
      */
+    public <T extends Map<String, Object>> Map<String, T> getByRowKeyColl(Collection<byte[]> rowKeyColl, HBaseMapper<T> mapper) {
+        return getByRowKeyColl(rowKeyColl, mapper, null);
+    }
+
+    /**
+     * 单条件查询,根据rowkey查询唯一一条记录
+     */
     public <T extends Map<String, Object>> Map<String, T> getByRowKeyColl(Collection<byte[]> rowKeyColl, HBaseMapper<T> mapper, QualifierSet qualifierSet) {
         if (null == rowKeyColl || rowKeyColl.isEmpty()) {
             return Collections.emptyMap();
         }
         qualifierSet = null == qualifierSet ? new QualifierSet() : qualifierSet;
         try {
-            List<Get> getList = new ArrayList<Get>();
+            HConnection hConnection = HConnectionManager.getConnection(this.configuration);
+            HashMap<HRegionLocation, List<Get>> hRegionLocationListHashMap = new HashMap<>();
+            int row_count = 0;
             for (byte[] rowKey : rowKeyColl) {
                 if (null != rowKey) {
-                    getList.add(qualifierSet.fillQualifier(new Get(rowKey)));
+                    Get get = qualifierSet.fillQualifier(new Get(rowKey));
+                    HRegionLocation row = hConnection.locateRegion(tableNameByte, rowKey);
+                    List<Get> e = hRegionLocationListHashMap.get(row);
+                    if (e == null) {
+                        e = new ArrayList<>();
+                        hRegionLocationListHashMap.put(row, e);
+                    }
+                    e.add(get);
+                    row_count++;
                 }
             }
-            if (getList.isEmpty()) {
+            if (row_count < 1) {
                 return Collections.emptyMap();
             }
             long start = System.currentTimeMillis();
             Map<String, T> tList = new HashMap<String, T>();
-            //Result[] resultArr = table.get(getList);
-            List<Result> resultList = BatchGet.get(getList, tableName, hTablePool);
+            List<Result> resultList = BatchGet.get2(hRegionLocationListHashMap, tableName, hTablePool);
             boolean isAllQualifier = qualifierSet.getQualifierSet().isEmpty();
             for (Result r : resultList) {
                 Entry<T> tmp = parseResult(mapper, qualifierSet, isAllQualifier, r);

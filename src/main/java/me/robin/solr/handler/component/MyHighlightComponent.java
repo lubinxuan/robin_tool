@@ -54,8 +54,8 @@ public abstract class MyHighlightComponent extends HighlightComponent {
             field.setAccessible(false);
             logger.debug("高亮组件!!!{}", highlighter);
         } catch (Throwable e) {
-            logger.error("设置高亮组件异常!!!! 系统将退出", e);
-            System.exit(-1);
+            logger.error("设置高亮组件异常!!!!", e);
+            throw new RuntimeException("设置高亮组件异常!!!!", e);
         }
     }
 }

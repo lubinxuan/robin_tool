@@ -1,5 +1,7 @@
 package me.robin.server;
 
+import me.robin.Const;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -18,7 +20,7 @@ class Echo {
     public Echo(Socket acceptSocket) throws IOException {
         this.acceptSocket = acceptSocket;
         this.serverOut = new DataOutputStream(acceptSocket.getOutputStream());
-        this.buf = new BufferedReader(new InputStreamReader(acceptSocket.getInputStream()));
+        this.buf = new BufferedReader(new InputStreamReader(acceptSocket.getInputStream(), Const.UTF_8));
     }
 
     public void echo(Object msg) throws Exception {

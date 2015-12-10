@@ -1,5 +1,6 @@
 package me.robin.utils;
 
+import me.robin.Const;
 import me.robin.datasource.CryptBasicDataSource;
 import org.apache.commons.codec.binary.Base64;
 
@@ -73,13 +74,13 @@ public class DesUtils {
      * @author <a href="mailto:leo841001@163.com">LiGuoQing</a>
      */
     public static byte[] hexStr2ByteArr(String strIn) throws Exception {
-        byte[] arrB = strIn.getBytes();
+        byte[] arrB = strIn.getBytes(Const.UTF_8);
         int iLen = arrB.length;
 
         // 两个字符表示一个字节，所以字节数组长度是字符串长度除以2
         byte[] arrOut = new byte[iLen / 2];
         for (int i = 0; i < iLen; i = i + 2) {
-            String strTmp = new String(arrB, i, 2);
+            String strTmp = new String(arrB, i, 2,Const.UTF_8);
             arrOut[i / 2] = (byte) Integer.parseInt(strTmp, 16);
         }
         return arrOut;
@@ -102,7 +103,7 @@ public class DesUtils {
      */
     public DesUtils(String strKey) throws Exception {
         Security.addProvider(new com.sun.crypto.provider.SunJCE());
-        Key key = getKey(strKey.getBytes());
+        Key key = getKey(strKey.getBytes(Const.UTF_8));
 
         encryptCipher = Cipher.getInstance("DES");
         encryptCipher.init(Cipher.ENCRYPT_MODE, key);
@@ -130,7 +131,7 @@ public class DesUtils {
      * @throws Exception
      */
     public String encrypt(String strIn) throws Exception {
-        return byteArr2HexStr(encrypt(strIn.getBytes()));
+        return byteArr2HexStr(encrypt(strIn.getBytes(Const.UTF_8)));
     }
 
     /**
@@ -152,7 +153,7 @@ public class DesUtils {
      * @throws Exception
      */
     public String decrypt(String strIn) throws Exception {
-        return new String(decrypt(hexStr2ByteArr(strIn)));
+        return new String(decrypt(hexStr2ByteArr(strIn)),Const.UTF_8);
     }
 
     /**

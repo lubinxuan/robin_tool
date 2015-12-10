@@ -1,5 +1,7 @@
 package me.robin.utils;
 
+import me.robin.Const;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -72,7 +74,7 @@ public class ZipUtils {
             while ((offset = ginzip.read(buffer)) != -1) {
                 out.write(buffer, 0, offset);
             }
-            decompressed = out.toString("utf-8");
+            decompressed = out.toString(Const._UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -114,7 +116,7 @@ public class ZipUtils {
             out = new ByteArrayOutputStream();
             zout = new ZipOutputStream(out);
             zout.putNextEntry(new ZipEntry("0"));
-            zout.write(str.getBytes());
+            zout.write(str.getBytes(Const.UTF_8));
             zout.closeEntry();
             compressed = out.toByteArray();
             compressedStr = new sun.misc.BASE64Encoder().encodeBuffer(compressed);
@@ -163,7 +165,7 @@ public class ZipUtils {
             while ((offset = zin.read(buffer)) != -1) {
                 out.write(buffer, 0, offset);
             }
-            decompressed = out.toString();
+            decompressed = out.toString(Const._UTF_8);
         } catch (IOException e) {
             decompressed = null;
         } finally {

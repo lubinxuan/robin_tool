@@ -1,6 +1,5 @@
 package me.robin.solr.util;
 
-import me.robin.solr.util.HBaseSolrData;
 import org.apache.lucene.util.BytesRef;
 
 import java.util.Map;

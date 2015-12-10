@@ -9,14 +9,13 @@ public class CombineEntity extends StringEntity{
 
     private String join = "";
 
-    public CombineEntity(String key, String[] mappings) {
+    public CombineEntity(String key, final String[] mappings) {
         super(key);
         this.mappings = mappings;
     }
 
-    public CombineEntity(String key, String[] mappings, String join) {
-        super(key);
-        this.mappings = mappings;
+    public CombineEntity(String key, final String[] mappings, String join) {
+        this(key,mappings);
         this.join = join;
     }
 
