@@ -36,6 +36,17 @@ public class ContextBuilder {
         return this;
     }
 
+    public ContextBuilder object(String key) {
+        return object(key, key);
+    }
+
+    public ContextBuilder object(String key, String mapping) {
+        if (filter.add(key)) {
+            el.add(new ObjectEntity(key, mapping));
+        }
+        return this;
+    }
+
     public ContextBuilder string(String key) {
         return string(key, key);
     }
