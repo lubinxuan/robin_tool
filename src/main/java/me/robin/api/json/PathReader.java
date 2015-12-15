@@ -4,6 +4,9 @@ import me.robin.api.util.Path;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Lubin.Xuan on 2015/6/11.
  * ie.
@@ -33,6 +36,12 @@ public class PathReader {
             Path pi = path[depth];
             if (pi.getPIdx() != null && pi.getPIdx() < source.size()) {
                 return read(source.get(pi.getPIdx()), path, null != pi.getNode() ? depth : depth + 1);
+            } else if (pi.getPIdx() == null) {
+                Object[] array = new Object[source.size()];
+                for (int i = 0; i < source.size(); i++) {
+                    array[i] = read(i, path, null != pi.getNode() ? depth : depth + 1);
+                }
+                return array;
             } else {
                 return null;
             }
