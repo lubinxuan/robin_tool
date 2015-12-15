@@ -1,6 +1,6 @@
 package me.robin.api.entity;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Created by Lubin.Xuan on 2015/10/12.
