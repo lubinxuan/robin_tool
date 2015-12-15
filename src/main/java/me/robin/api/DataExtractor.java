@@ -3,6 +3,7 @@ package me.robin.api;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import me.robin.api.entity.Context;
+import me.robin.api.json.JsonDataUtil;
 import me.robin.api.json.JsonExtractor;
 import me.robin.api.util.Type;
 import me.robin.api.xml.XmlExtractor;
@@ -31,6 +32,9 @@ public abstract class DataExtractor {
 
     public static List<JSONObject> readData(Type type, String source, Context context) {
         if (DATA_EXTRACTOR_MAP.containsKey(type)) {
+            if (Type.JSONP.equals(type)) {
+                source = JsonDataUtil.read(source);
+            }
             List<JSONObject> readData = DATA_EXTRACTOR_MAP.get(type).readData(source, context);
             return null == readData ? Collections.emptyList() : readData;
         } else {
