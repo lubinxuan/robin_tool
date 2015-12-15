@@ -26,5 +26,5 @@ public abstract class Entity<T> {
         return mapping;
     }
 
-    public abstract T value(String value);
+    public abstract T value(Object value);
 }

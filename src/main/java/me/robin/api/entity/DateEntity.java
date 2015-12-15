@@ -13,7 +13,7 @@ public class DateEntity extends Entity<Date> {
     private final DateFormat dateFormat;
 
     public DateEntity(String key, String dateFormat) {
-        this(key,key,dateFormat);
+        this(key, key, dateFormat);
     }
 
     public DateEntity(String key, String mapping, String dateFormat) {
@@ -22,9 +22,9 @@ public class DateEntity extends Entity<Date> {
     }
 
     @Override
-    public Date value(String value) {
+    public Date value(Object value) {
         try {
-            return dateFormat.parse(value);
+            return dateFormat.parse(String.valueOf(value));
         } catch (ParseException e) {
             e.printStackTrace();
             return null;

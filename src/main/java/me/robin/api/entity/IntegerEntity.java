@@ -1,5 +1,7 @@
 package me.robin.api.entity;
 
+import com.alibaba.fastjson.util.TypeUtils;
+
 /**
  * Created by Lubin.Xuan on 2015/10/12.
  * ie.
@@ -15,7 +17,7 @@ public class IntegerEntity extends Entity<Integer> {
     }
 
     @Override
-    public Integer value(String value) {
-        return Integer.parseInt(value);
+    public Integer value(Object value) {
+        return TypeUtils.castToInt(value);
     }
 }

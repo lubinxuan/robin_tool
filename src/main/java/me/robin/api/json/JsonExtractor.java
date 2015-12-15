@@ -8,6 +8,7 @@ import me.robin.api.entity.CombineEntity;
 import me.robin.api.entity.Context;
 import me.robin.api.entity.Entity;
 import me.robin.api.util.Path;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,14 +76,18 @@ public class JsonExtractor extends DataExtractor {
                         if (sb.length() > 0) {
                             sb.append(ce.getJoin());
                         }
-                        sb.append(val);
+                        if (val.getClass().isArray()) {
+                            sb.append(StringUtils.join((Object[]) val, ce.getJoin()));
+                        } else {
+                            sb.append(val);
+                        }
                     }
                 }
                 result.put(entity.key(), entity.value(sb.toString()));
             } else {
                 Object val = PathReader.read(data, builder.eval(entity.mapping()));
                 if (null != val) {
-                    result.put(entity.key(), entity.value(String.valueOf(val)));
+                    result.put(entity.key(), entity.value(val));
                 }
             }
         }

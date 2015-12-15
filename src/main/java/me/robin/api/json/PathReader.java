@@ -39,7 +39,7 @@ public class PathReader {
             } else if (pi.getPIdx() == null) {
                 Object[] array = new Object[source.size()];
                 for (int i = 0; i < source.size(); i++) {
-                    array[i] = read(i, path, null != pi.getNode() ? depth : depth + 1);
+                    array[i] = read(source.get(i), path, null != pi.getNode() ? depth : depth + 1);
                 }
                 return array;
             } else {
