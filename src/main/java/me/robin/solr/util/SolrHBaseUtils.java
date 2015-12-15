@@ -135,7 +135,7 @@ public class SolrHBaseUtils {
         if (null == config) {
             return 50;
         } else {
-            return config.getInt("config/hbase/regionCount", 50);
+            return config.getInt("config/indexConfig/hbase/regionCount", 50);
         }
     }
 
