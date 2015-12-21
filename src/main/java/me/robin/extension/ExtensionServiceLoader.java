@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 
 /**
  * Created by Lubin.Xuan on 2015/12/21.
