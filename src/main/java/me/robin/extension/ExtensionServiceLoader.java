@@ -39,8 +39,10 @@ public class ExtensionServiceLoader<T> {
                             String clazz = sp[1];
                             try {
                                 Class<T> c = (Class<T>) Class.forName(clazz);
-                                T t = c.newInstance();
-                                serviceMap.put(name, t);
+                                if (c.isAssignableFrom(tClass)) {
+                                    T t = c.newInstance();
+                                    serviceMap.put(name, t);
+                                }
                             } catch (Throwable ignore) {
 
                             }
