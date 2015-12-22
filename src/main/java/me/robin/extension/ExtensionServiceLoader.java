@@ -1,11 +1,10 @@
 package me.robin.extension;
 
-import org.apache.commons.io.IOUtils;
-
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,8 +27,9 @@ public class ExtensionServiceLoader<T> {
                     String file = EXTENSION_DIR + "/" + tClass.getName();
                     try {
                         InputStream is = ExtensionServiceLoader.class.getClassLoader().getResourceAsStream(file);
-                        List<String> list = IOUtils.readLines(is, "utf-8");
-                        for (String line : list) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(is, "utf-8"));
+                        String line;
+                        while (null != (line = reader.readLine())) {
                             line = line.trim();
                             if (line.startsWith("#")) {
                                 continue;
