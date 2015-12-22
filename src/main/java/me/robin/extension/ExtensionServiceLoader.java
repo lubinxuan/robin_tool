@@ -47,6 +47,8 @@ public class ExtensionServiceLoader<T> {
 
                             }
                         }
+                        reader.close();
+                        is.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
