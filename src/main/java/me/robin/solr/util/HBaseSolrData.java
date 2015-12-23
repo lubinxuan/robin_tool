@@ -105,6 +105,7 @@ public class HBaseSolrData {
                     row_count++;
                 }
             }
+            hConnection.close();
             if (row_count < 1) {
                 return Collections.emptyMap();
             }

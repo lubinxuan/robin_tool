@@ -41,30 +41,34 @@ public class HBaseTableOP {
 
     public static boolean createTable(Configuration configuration, String tableName, String[] familySet, int regionCount) throws Exception {
         HBaseAdmin hBaseAdmin = new HBaseAdmin(configuration);
-        if (!hBaseAdmin.tableExists(tableName)) {
-            HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
-            int validFamilies = 0;
-            for (String family : familySet) {
-                if (null == family || family.trim().length() < 1) {
-                    continue;
+        try {
+            if (!hBaseAdmin.tableExists(tableName)) {
+                HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
+                int validFamilies = 0;
+                for (String family : familySet) {
+                    if (null == family || family.trim().length() < 1) {
+                        continue;
+                    }
+                    validFamilies++;
+                    tableDescriptor.addFamily(new HColumnDescriptor(family.trim()));
                 }
-                validFamilies++;
-                tableDescriptor.addFamily(new HColumnDescriptor(family.trim()));
-            }
-            if (validFamilies < 1) {
-                throw new IllegalArgumentException("HBase family required!!!!");
-            }
-            if (regionCount > 3) {
-                byte[][] spiltKeys = calcSplitKeys(regionCount);
-                hBaseAdmin.createTable(tableDescriptor, spiltKeys);
+                if (validFamilies < 1) {
+                    throw new IllegalArgumentException("HBase family required!!!!");
+                }
+                if (regionCount > 3) {
+                    byte[][] spiltKeys = calcSplitKeys(regionCount);
+                    hBaseAdmin.createTable(tableDescriptor, spiltKeys);
+                } else {
+                    hBaseAdmin.createTable(tableDescriptor);
+                }
+                return true;
             } else {
-                hBaseAdmin.createTable(tableDescriptor);
+                logger.info("table [{}] already exists......", tableName);
             }
-            return true;
-        } else {
-            logger.info("table [{}] already exists......", tableName);
+            return false;
+        } finally {
+            hBaseAdmin.close();
         }
-        return false;
     }
 
     public static byte[][] calcSplitKeys(int regionCount) {
