@@ -13,6 +13,12 @@ import java.util.List;
  */
 public class PathReader {
 
+    private static final Path.Builder BUILDER = new Path.Builder(10000);
+
+    public static Object read(Object source, String path) {
+        return read(source, BUILDER.eval(path), 0);
+    }
+
     public static Object read(Object source, Path[] paths) {
         return read(source, paths, 0);
     }
