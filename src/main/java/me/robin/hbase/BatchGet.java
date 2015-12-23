@@ -1,6 +1,7 @@
 package me.robin.hbase;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import me.robin.utils.CloseableUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.hbase.HRegionLocation;
 import org.apache.hadoop.hbase.client.*;
@@ -78,7 +79,7 @@ public class BatchGet {
                 try {
                     return hTableInterface.get(gets);
                 } finally {
-                    hTableInterface.close();
+                    CloseableUtils.closeQuietly(hTableInterface);
                 }
             };
             callableList.add(callable);
