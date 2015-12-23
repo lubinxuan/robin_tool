@@ -1,11 +1,8 @@
 package me.robin.api.json;
 
-import me.robin.api.util.Path;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
+import me.robin.api.util.Path;
 
 /**
  * Created by Lubin.Xuan on 2015/6/11.
