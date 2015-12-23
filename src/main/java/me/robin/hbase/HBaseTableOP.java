@@ -1,5 +1,6 @@
 package me.robin.hbase;
 
+import me.robin.utils.CloseableUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
@@ -17,31 +18,37 @@ public class HBaseTableOP {
     private static final Logger logger = LoggerFactory.getLogger(HBaseTableOP.class);
 
     public static boolean createTable(Configuration configuration, String tableName, String[] familySet) throws Exception {
-        HBaseAdmin hBaseAdmin = new HBaseAdmin(configuration);
-        if (!hBaseAdmin.tableExists(tableName)) {
-            HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
-            int validFamilies = 0;
-            for (String family : familySet) {
-                if (null == family || family.trim().length() < 1) {
-                    continue;
+        HBaseAdmin hBaseAdmin = null;
+        try {
+            hBaseAdmin = new HBaseAdmin(configuration);
+            if (!hBaseAdmin.tableExists(tableName)) {
+                HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
+                int validFamilies = 0;
+                for (String family : familySet) {
+                    if (null == family || family.trim().length() < 1) {
+                        continue;
+                    }
+                    validFamilies++;
+                    tableDescriptor.addFamily(new HColumnDescriptor(family.trim()));
                 }
-                validFamilies++;
-                tableDescriptor.addFamily(new HColumnDescriptor(family.trim()));
+                if (validFamilies < 1) {
+                    throw new IllegalArgumentException("HBase family required!!!!");
+                }
+                hBaseAdmin.createTable(tableDescriptor);
+                return true;
+            } else {
+                logger.info("table [{}] already exists......", tableName);
             }
-            if (validFamilies < 1) {
-                throw new IllegalArgumentException("HBase family required!!!!");
-            }
-            hBaseAdmin.createTable(tableDescriptor);
-            return true;
-        } else {
-            logger.info("table [{}] already exists......", tableName);
+            return false;
+        } finally {
+            CloseableUtils.closeQuietly(hBaseAdmin);
         }
-        return false;
     }
 
     public static boolean createTable(Configuration configuration, String tableName, String[] familySet, int regionCount) throws Exception {
-        HBaseAdmin hBaseAdmin = new HBaseAdmin(configuration);
+        HBaseAdmin hBaseAdmin = null;
         try {
+            hBaseAdmin = new HBaseAdmin(configuration);
             if (!hBaseAdmin.tableExists(tableName)) {
                 HTableDescriptor tableDescriptor = HBase.getHTableDescriptor(tableName);
                 int validFamilies = 0;
@@ -67,7 +74,7 @@ public class HBaseTableOP {
             }
             return false;
         } finally {
-            hBaseAdmin.close();
+            CloseableUtils.closeQuietly(hBaseAdmin);
         }
     }
 
@@ -81,22 +88,32 @@ public class HBaseTableOP {
 
 
     public static void deleteTable(Configuration configuration, String tableName) throws Exception {
-        HBaseAdmin hAdmin = new HBaseAdmin(configuration);
-        if (hAdmin.tableExists(tableName)) {
-            hAdmin.disableTable(tableName);
-            hAdmin.deleteTable(tableName);
-        } else {
-            logger.info("table [{}] not exists......", tableName);
+        HBaseAdmin hAdmin = null;
+        try {
+            hAdmin = new HBaseAdmin(configuration);
+            if (hAdmin.tableExists(tableName)) {
+                hAdmin.disableTable(tableName);
+                hAdmin.deleteTable(tableName);
+            } else {
+                logger.info("table [{}] not exists......", tableName);
+            }
+        } finally {
+            CloseableUtils.closeQuietly(hAdmin);
         }
     }
 
 
     public static void enableTable(Configuration configuration, String tableName) throws Exception {
-        HBaseAdmin hAdmin = new HBaseAdmin(configuration);
-        if (hAdmin.tableExists(tableName)) {
-            hAdmin.enableTable(tableName);
-        } else {
-            logger.info("table [{}] not exists......", tableName);
+        HBaseAdmin hAdmin = null;
+        try {
+            hAdmin = new HBaseAdmin(configuration);
+            if (hAdmin.tableExists(tableName)) {
+                hAdmin.enableTable(tableName);
+            } else {
+                logger.info("table [{}] not exists......", tableName);
+            }
+        } finally {
+            CloseableUtils.closeQuietly(hAdmin);
         }
     }
 }
