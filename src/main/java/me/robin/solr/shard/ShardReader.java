@@ -17,9 +17,10 @@ import java.util.List;
  */
 public class ShardReader {
 
-    private static final String PATH = "/implicit/";
+    protected static final String PATH = "/implicit/";
+    protected static final String START = "start", END = "end";
 
-    private SolrZkClient zkClient;
+    protected SolrZkClient zkClient;
 
     public ShardReader(String zkHost) {
         this.zkClient = new SolrZkClient(zkHost, 10000);
@@ -29,7 +30,7 @@ public class ShardReader {
         this.zkClient = zkClient;
     }
 
-    private void checkNode(String collection) throws KeeperException, InterruptedException {
+    protected void checkNode(String collection) throws KeeperException, InterruptedException {
         if (!zkClient.exists(PATH + collection, true)) {
             zkClient.makePath(PATH + collection, null, CreateMode.PERSISTENT, true);
         }
@@ -43,8 +44,8 @@ public class ShardReader {
                 List<Shard> shardList = new ArrayList<>();
                 for (String shard : object.keySet()) {
                     JSONObject range = object.getJSONObject(shard);
-                    String start = range.getString("start");
-                    String end = range.getString("end");
+                    String start = range.getString(START);
+                    String end = range.getString(END);
                     shardList.add(new Shard(shard, start, end));
                 }
                 return shardList;
@@ -63,54 +64,7 @@ public class ShardReader {
         zkClient.getSolrZooKeeper().register(watcher);
     }
 
-    public void addShardConfig(String collection, String shard, String start, String end) throws KeeperException, InterruptedException, UnsupportedEncodingException {
-        byte[] data = read(collection);
-        JSONObject object;
-        if (null != data) {
-            object = JSON.parseObject(data, JSONObject.class);
-            if (object.containsKey(shard)) {
-                return;
-            }
-        } else {
-            object = new JSONObject();
-        }
-        JSONObject s = new JSONObject();
-        s.put("start", start);
-        s.put("end", end);
-        object.put(shard, s);
-        saveDate(collection, object);
-    }
-
-    public void addShardConfig(String collection, List<Shard> shardList) throws KeeperException, InterruptedException, UnsupportedEncodingException {
-        byte[] data = read(collection);
-        JSONObject object;
-        if (null != data) {
-            object = JSON.parseObject(data, JSONObject.class);
-        } else {
-            object = new JSONObject();
-        }
-        int update = 0;
-        for (Shard shard : shardList) {
-            if (object.containsKey(shard.getShard())) {
-                continue;
-            }
-            JSONObject s = new JSONObject();
-            s.put("start", shard.getStart());
-            s.put("end", shard.getEnd());
-            object.put(shard.getShard(), s);
-            update++;
-        }
-        if (update == 0) {
-            return;
-        }
-        saveDate(collection, object);
-    }
-
-    private void saveDate(String collection, JSONObject object) throws UnsupportedEncodingException, KeeperException, InterruptedException {
-        zkClient.setData(PATH + collection, JSONObject.toJSONString(object, true).getBytes("utf-8"), true);
-    }
-
-    public byte[] read(String collection) throws KeeperException, InterruptedException {
+    protected byte[] read(String collection) throws KeeperException, InterruptedException {
         checkNode(collection);
         return zkClient.getData(PATH + collection, null, null, true);
     }
