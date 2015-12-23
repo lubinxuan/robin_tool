@@ -1,6 +1,10 @@
 package me.robin.solr.util;
 
-import me.robin.hbase.*;
+import me.robin.hbase.BatchGet;
+import me.robin.hbase.HBaseTableOP;
+import me.robin.hbase.IObjectSerializer;
+import me.robin.hbase.QualifierSet;
+import me.robin.utils.CloseableUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HRegionLocation;
@@ -11,7 +15,6 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -198,7 +201,7 @@ public class HBaseSolrData {
                 hTableInterface.put(putList);
                 hTableInterface.flushCommits();
             } finally {
-                closeQuietly(hTableInterface);
+                CloseableUtils.closeQuietly(hTableInterface);
             }
 
             logger.info("data[{}] HBase 数据存储耗时[{}]ms", putList.size(), System.currentTimeMillis() - start);
@@ -220,7 +223,7 @@ public class HBaseSolrData {
             hTableInterface.delete(deleteList);
             hTableInterface.flushCommits();
         } finally {
-            closeQuietly(hTableInterface);
+            CloseableUtils.closeQuietly(hTableInterface);
         }
 
 
@@ -250,7 +253,7 @@ public class HBaseSolrData {
             hTableInterface.batch(rowList);
             hTableInterface.flushCommits();
         } finally {
-            closeQuietly(hTableInterface);
+            CloseableUtils.closeQuietly(hTableInterface);
         }
     }
 
@@ -295,14 +298,6 @@ public class HBaseSolrData {
         HTableInterface tableInterface = this.hTablePool.getTable(tableName);
         tableInterface.setAutoFlush(false);
         return tableInterface;
-    }
-
-    private static void closeQuietly(HTableInterface hTableInterface) {
-        try {
-            hTableInterface.close();
-        } catch (IOException e) {
-            logger.warn("HTable 关闭 异常!!! {}", e);
-        }
     }
 
     public static class Entry<T> {
