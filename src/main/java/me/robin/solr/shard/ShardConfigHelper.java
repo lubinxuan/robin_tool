@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by Lubin.Xuan on 2015/12/23.
  */
-public class ShardConfigHelper extends ShardReader {
+public class ShardConfigHelper extends ShardRouter.ShardReader {
     public ShardConfigHelper(String zkHost) {
         super(zkHost);
     }
@@ -38,7 +38,7 @@ public class ShardConfigHelper extends ShardReader {
         saveDate(collection, object);
     }
 
-    public void addShardConfig(String collection, List<Shard> shardList) throws KeeperException, InterruptedException, UnsupportedEncodingException {
+    public void addShardConfig(String collection, List<ShardRouter.Shard> shardList) throws KeeperException, InterruptedException, UnsupportedEncodingException {
         byte[] data = read(collection);
         JSONObject object;
         if (null != data) {
@@ -47,7 +47,7 @@ public class ShardConfigHelper extends ShardReader {
             object = new JSONObject();
         }
         int update = 0;
-        for (Shard shard : shardList) {
+        for (ShardRouter.Shard shard : shardList) {
             if (object.containsKey(shard.getShard())) {
                 continue;
             }
