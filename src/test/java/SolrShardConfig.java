@@ -2,6 +2,7 @@ import me.robin.solr.shard.ShardRouter;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Lubin.Xuan on 2015/12/23.
@@ -23,8 +24,20 @@ public class SolrShardConfig {
         //shardReader.addShardConfig("admonitor", "2015_12", "2015-12-01", "2016-01-01");
         //shardReader.addShardConfig("admonitor", "2016_1", "2016-01-01", "2016-02-01");
         ShardRouter shardRouter = new ShardRouter(shardReader, "admonitor");
-        System.out.println(shardRouter.locateShard("2016-01-25"));
-
-        System.out.println();
+        long s = System.currentTimeMillis();
+        CountDownLatch latch = new CountDownLatch(10);
+        for (int i = 0; i < 10; i++) {
+            new Thread(()->{
+                try {
+                    for (int j = 0; j < 1000000; j++) {
+                        System.out.println(shardRouter.locateShard("2016-01-25"));
+                    }
+                }finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+        latch.await();
+        System.out.println(System.currentTimeMillis() - s);
     }
 }
