@@ -3,8 +3,6 @@ import me.robin.solr.shard.ShardRouter;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Lubin.Xuan on 2015/12/23.
