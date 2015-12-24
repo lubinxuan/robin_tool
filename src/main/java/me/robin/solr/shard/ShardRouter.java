@@ -3,14 +3,13 @@ package me.robin.solr.shard;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.solr.common.cloud.SolrZkClient;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Created by Lubin.Xuan on 2015/12/23.
@@ -31,7 +30,12 @@ public class ShardRouter {
     }
 
     public ShardRouter(ShardReader shardReader, String collection) throws InterruptedException, UnsupportedEncodingException, KeeperException {
-        shardReader.appendWatcher(watchedEvent -> {
+
+        shardReader.monitor(watchedEvent -> {
+            if (!watchedEvent.getPath().equals(ShardReader.PATH + collection)) {
+                return false;
+            }
+
             if (Watcher.Event.EventType.NodeDataChanged.equals(watchedEvent.getType())) {
                 try {
                     update(shardReader, collection);
@@ -39,7 +43,8 @@ public class ShardRouter {
                     e.printStackTrace();
                 }
             }
-        });
+            return true;
+        }, collection);
         update(shardReader, collection);
     }
 
@@ -52,7 +57,7 @@ public class ShardRouter {
         for (Shard shard : shardList) {
             int c1 = null == shard.getStart() ? 1 : routeValue.compareTo(shard.getStart());
             int c2 = null == shard.getEnd() ? -1 : routeValue.compareTo(shard.getEnd());
-            if (c1 >= 0 && c2 <= 0) {
+            if (c1 >= 0 && c2 < 0) {
                 return shard.getShard();
             }
         }
@@ -107,8 +112,17 @@ public class ShardRouter {
             }
         }
 
-        public void appendWatcher(Watcher watcher) {
-            zkClient.getSolrZooKeeper().register(watcher);
+        public void monitor(Predicate<WatchedEvent> watcher, String collection) throws KeeperException, InterruptedException {
+            ZooKeeper zooKeeper = zkClient.getSolrZooKeeper();
+            zooKeeper.exists(PATH + collection, watchedEvent -> {
+                if (watcher.test(watchedEvent)) {
+                    try {
+                        zooKeeper.exists(watchedEvent.getPath(), true);
+                    } catch (KeeperException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
 
         protected byte[] read(String collection) throws KeeperException, InterruptedException {
