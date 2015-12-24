@@ -2,9 +2,10 @@ package me.robin.solr.shard;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
@@ -12,12 +13,12 @@ import java.util.List;
  * Created by Lubin.Xuan on 2015/12/23.
  */
 public class ShardConfigHelper extends ShardRouter.ShardReader {
-    public ShardConfigHelper(String zkHost) {
+    public ShardConfigHelper(String zkHost) throws IOException {
         super(zkHost);
     }
 
-    public ShardConfigHelper(SolrZkClient zkClient) {
-        super(zkClient);
+    public ShardConfigHelper(ZooKeeper zooKeeper) {
+        super(zooKeeper);
     }
 
     public void addShardConfig(String collection, String shard, String start, String end) throws KeeperException, InterruptedException, UnsupportedEncodingException {
@@ -36,6 +37,17 @@ public class ShardConfigHelper extends ShardRouter.ShardReader {
         s.put(END, end);
         object.put(shard, s);
         saveDate(collection, object);
+    }
+
+    public void delShardConfig(String collection, String shard) throws KeeperException, InterruptedException, UnsupportedEncodingException {
+        byte[] data = read(collection);
+        if (null != data) {
+            JSONObject object = JSON.parseObject(data, JSONObject.class);
+            if (object.containsKey(shard)) {
+                object.remove(shard);
+                saveDate(collection, object);
+            }
+        }
     }
 
     public void addShardConfig(String collection, List<ShardRouter.Shard> shardList) throws KeeperException, InterruptedException, UnsupportedEncodingException {
@@ -64,6 +76,6 @@ public class ShardConfigHelper extends ShardRouter.ShardReader {
     }
 
     private void saveDate(String collection, JSONObject object) throws UnsupportedEncodingException, KeeperException, InterruptedException {
-        zkClient.setData(PATH + collection, JSONObject.toJSONString(object, true).getBytes("utf-8"), true);
+        zooKeeper.setData(PATH + collection, JSONObject.toJSONString(object, true).getBytes("utf-8"), -1);
     }
 }
