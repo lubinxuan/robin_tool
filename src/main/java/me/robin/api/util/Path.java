@@ -85,7 +85,7 @@ public class Path {
 
     public static class Builder {
 
-        private int cache_size = 1000;
+        private int cache_size = 100000;
 
         private Map<String, Path[]> cache;
 
