@@ -1,5 +1,7 @@
 package me.robin.api.util;
 
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+
 import java.util.*;
 
 /**
@@ -85,14 +87,10 @@ public class Path {
 
         private int cache_size = 1000;
 
-        private Map<String, Path[]> cache = new LinkedHashMap<String, Path[]>() {
-            @Override
-            protected boolean removeEldestEntry(Map.Entry<String, Path[]> entry) {
-                return size() > cache_size;
-            }
-        };
+        private Map<String, Path[]> cache;
 
         public Builder() {
+            cache = new ConcurrentLinkedHashMap.Builder<String, Path[]>().maximumWeightedCapacity(cache_size).build();
         }
 
         public Builder(int cache_size) {
@@ -104,7 +102,6 @@ public class Path {
                 synchronized (this) {
                     if (!cache.containsKey(path)) {
                         cache.put(path, Path.eval(path));
-                        cache_size++;
                     }
                 }
             }
