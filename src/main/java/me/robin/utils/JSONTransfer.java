@@ -19,10 +19,14 @@ public class JSONTransfer<T extends HashMap<String, Object>> {
     }
 
 
-    public void set(JSONObject tar) throws IllegalAccessException, InstantiationException {
+    public void set(JSONObject tar) {
         clear();
         OBJECT_THREAD_LOCAL.set(tar);
-        THREAD_LOCAL_V.set(clz.newInstance());
+        try {
+            THREAD_LOCAL_V.set(clz.newInstance());
+        } catch (InstantiationException | IllegalAccessException ignore) {
+
+        }
     }
 
     public <P> void read(String key, Class<P> pClz) {
@@ -30,10 +34,17 @@ public class JSONTransfer<T extends HashMap<String, Object>> {
     }
 
     public <P> void read(String key, String alias, Class<P> pClz) {
+        if (null == THREAD_LOCAL_V.get()) {
+            return;
+        }
         P v = OBJECT_THREAD_LOCAL.get().getObject(key, pClz);
         if (null != v) {
             THREAD_LOCAL_V.get().put(alias, v);
         }
+    }
+
+    public T get() {
+        return (T) THREAD_LOCAL_V.get();
     }
 
     public void clear() {
