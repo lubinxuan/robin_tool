@@ -1,6 +1,9 @@
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 
@@ -8,11 +11,34 @@ import java.io.IOException;
  * Created by Lubin.Xuan on 2015/12/25.
  */
 public class CollectionOp {
-    public static void main(String[] args) throws IOException, SolrServerException {
-        CloudSolrClient cloudSolrServer = new CloudSolrClient("172.16.2.30:3181,172.16.2.31:3181,172.16.2.32:3181");
+
+    CloudSolrClient cloudSolrServer;
+
+    @Before
+    public void setUp() {
+        cloudSolrServer = new CloudSolrClient("172.16.2.30:3181,172.16.2.31:3181,172.16.2.32:3181");
         cloudSolrServer.setZkClientTimeout(30000);
         cloudSolrServer.setZkConnectTimeout(30000);
         cloudSolrServer.connect();
+    }
+
+    @After
+    public void destroy() throws IOException {
+        cloudSolrServer.close();
+    }
+
+
+    @Test
+    public void addShard() throws IOException, SolrServerException {
+        CollectionAdminRequest.CreateShard shard = new CollectionAdminRequest.CreateShard();
+        shard.setCollectionName("admonitor");
+        shard.setShardName("2016_1");
+        cloudSolrServer.request(shard);
+    }
+
+    @Test
+    public void test() throws IOException, SolrServerException {
+
 
         CollectionAdminRequest.Delete delete = new CollectionAdminRequest.Delete();
         delete.setCollectionName("weibo");
@@ -31,6 +57,20 @@ public class CollectionOp {
         create.setRouterName("implicit");
         create.setShards("2013_2014,2015_1_6,2015_7_12,2016_1_3");
         cloudSolrServer.request(create);
-        cloudSolrServer.close();
+
     }
+
+
+    @Test
+    public void wbUSer() throws IOException, SolrServerException {
+
+        CollectionAdminRequest.Create create = new CollectionAdminRequest.Create();
+        create.setMaxShardsPerNode(2);
+        create.setNumShards(3);
+        create.setCollectionName("wb_user");
+        cloudSolrServer.request(create);
+
+    }
+
+
 }
