@@ -2,15 +2,15 @@ package me.robin.utils;
 
 import com.alibaba.fastjson.JSONObject;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Lubin.Xuan on 2015/12/28.
  */
-public class JSONTransfer<T extends HashMap<String, Object>> {
+public class JSONTransfer<T extends Map<String, Object>> {
 
     private static final ThreadLocal<JSONObject> OBJECT_THREAD_LOCAL = new ThreadLocal<>();
-    private static final ThreadLocal<HashMap<String, Object>> THREAD_LOCAL_V = new ThreadLocal<>();
+    private static final ThreadLocal<Map<String, Object>> THREAD_LOCAL_V = new ThreadLocal<>();
 
     private Class<T> clz;
 
