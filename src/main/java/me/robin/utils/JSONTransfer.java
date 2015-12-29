@@ -39,6 +39,11 @@ public class JSONTransfer<T extends Map<String, Object>> {
         }
         P v = OBJECT_THREAD_LOCAL.get().getObject(key, pClz);
         if (null != v) {
+            if (v instanceof String) {
+                if (((String) v).trim().length() < 1) {
+                    return;
+                }
+            }
             THREAD_LOCAL_V.get().put(alias, v);
         }
     }
