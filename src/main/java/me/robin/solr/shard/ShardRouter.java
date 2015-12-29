@@ -19,6 +19,7 @@ import java.util.function.Predicate;
 
 /**
  * Created by Lubin.Xuan on 2015/12/23.
+ * solr implicit 路由 配置读取工具
  */
 public class ShardRouter {
 
@@ -73,6 +74,10 @@ public class ShardRouter {
         return null;
     }
 
+    public boolean isImplicit(String collection) {
+        return shardMap.containsKey(collection);
+    }
+
     /**
      * Created by Lubin.Xuan on 2015/12/23.
      */
@@ -124,10 +129,6 @@ public class ShardRouter {
                 }
                 throw e;
             }
-        }
-
-        public ZooKeeper getZooKeeper() {
-            return zooKeeper;
         }
 
         public void monitor(Predicate<WatchedEvent> predicate) throws KeeperException, InterruptedException {

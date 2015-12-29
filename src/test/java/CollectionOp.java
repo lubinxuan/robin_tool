@@ -55,7 +55,7 @@ public class CollectionOp {
         create.setMaxShardsPerNode(2);
         create.setCollectionName("weibo");
         create.setRouterName("implicit");
-        create.setShards("2013_2014,2015_1_6,2015_7_12,2016_1_3");
+        create.setShards("2013_2014,2015_1_4,2015_5_12,2016_1_3");
         cloudSolrServer.request(create);
 
     }
