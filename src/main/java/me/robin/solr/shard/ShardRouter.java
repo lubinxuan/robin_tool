@@ -37,6 +37,11 @@ public class ShardRouter {
 
     public ShardRouter(ShardReader shardReader) throws InterruptedException, UnsupportedEncodingException, KeeperException {
         shardReader.monitor(watchedEvent -> {
+
+            if (null == watchedEvent || null == watchedEvent.getPath()) {
+                return false;
+            }
+
             if (!watchedEvent.getPath().startsWith(ShardReader.PATH)) {
                 return false;
             }

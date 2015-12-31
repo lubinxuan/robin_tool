@@ -1,11 +1,16 @@
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.request.schema.SchemaRequest;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Lubin.Xuan on 2015/12/25.
@@ -34,6 +39,10 @@ public class CollectionOp {
         shard.setCollectionName("admonitor");
         shard.setShardName("2016_1");
         cloudSolrServer.request(shard);
+    }
+
+    @Test
+    public void addField() throws IOException, SolrServerException {
     }
 
     @Test
