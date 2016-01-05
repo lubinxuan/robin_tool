@@ -161,6 +161,10 @@ public class ShardRouter {
             return zooKeeper.getData(PATH + collection, false, new Stat());
         }
 
+        public ZooKeeper getZooKeeper() {
+            return zooKeeper;
+        }
+
     }
 
     /**
