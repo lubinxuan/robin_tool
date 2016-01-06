@@ -95,6 +95,7 @@ public class Path {
 
         public Builder(int cache_size) {
             this.cache_size = cache_size;
+            cache = new ConcurrentLinkedHashMap.Builder<String, Path[]>().maximumWeightedCapacity(cache_size).build();
         }
 
         public Path[] eval(String path) {
