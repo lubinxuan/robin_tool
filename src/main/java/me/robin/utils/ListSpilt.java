@@ -25,4 +25,13 @@ public class ListSpilt<T> {
     public boolean hasNext() {
         return index < originalList.size();
     }
+
+    public static int taskBatch(int ori, int sub) {
+        if (0 == ori) {
+            return 0;
+        }
+
+        int mod = ori % sub;
+        return ori / sub + (mod == 0 ? 0 : 1);
+    }
 }
