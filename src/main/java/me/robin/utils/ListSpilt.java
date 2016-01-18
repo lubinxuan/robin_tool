@@ -26,6 +26,17 @@ public class ListSpilt<T> {
         return index < originalList.size();
     }
 
+    public List<List<T>> spilt(int spilt) {
+        List<List<T>> spiltList = new ArrayList<>();
+        int p_idx = this.index;
+        this.index = 0;
+        while (this.hasNext()) {
+            spiltList.add(this.next(spilt));
+        }
+        this.index = p_idx;
+        return spiltList;
+    }
+
     public static int taskBatch(int ori, int sub) {
         if (0 == ori) {
             return 0;
