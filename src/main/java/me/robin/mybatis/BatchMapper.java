@@ -5,7 +5,7 @@ package me.robin.mybatis;
  * ie.
  */
 public interface BatchMapper<T> {
-    public int insert(T t);
+    public int insert(T t, Object... objects);
 
-    public int update(T t);
+    public int update(T t, Object... objects);
 }

@@ -25,7 +25,7 @@ public class MybatisExecutor {
         this.batchSize = batchSize < 1 || batchSize > 10000 ? 10000 : batchSize;
     }
 
-    public <M extends BatchMapper<T>, T> int executeBatch(Class<M> mapperClass, List<T> tList, Type type) {
+    public <M extends BatchMapper<T>, T> int executeBatch(Class<M> mapperClass, List<T> tList, Type type, Object... objects) {
 
         if (null == tList || tList.isEmpty() || null == type) {
             return 0;
@@ -39,9 +39,9 @@ public class MybatisExecutor {
 
             for (int i = 0; i < tList.size(); i++) {
                 if (Type.INSERT.equals(type)) {
-                    mapper.insert(tList.get(i));
+                    mapper.insert(tList.get(i), objects);
                 } else {
-                    mapper.update(tList.get(i));
+                    mapper.update(tList.get(i), objects);
                 }
 
                 if ((i != 0 && i % batchSize == 0) || i + 1 == tList.size()) {
