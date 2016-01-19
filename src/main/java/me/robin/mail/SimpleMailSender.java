@@ -8,6 +8,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 import javax.mail.internet.MimeUtility;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -99,7 +100,7 @@ public class SimpleMailSender {
         // 设置发信人
         try {
             String nick = MimeUtility.encodeText(authenticator.getSender());
-            message.setFrom(new InternetAddress(nick+" <"+authenticator.getUsername()+">"));
+            message.setFrom(new InternetAddress(nick + " <" + authenticator.getUsername() + ">"));
         } catch (Throwable e) {
             message.setFrom(new InternetAddress(authenticator.getUsername()));
         }
@@ -121,6 +122,11 @@ public class SimpleMailSender {
      */
     public void send(List<String> recipients, String subject, Object content)
             throws AddressException, MessagingException {
+
+        if (recipients.isEmpty()) {
+            return;
+        }
+
         // 创建mime类型邮件
         final MimeMessage message = getMimeMessage(subject, content);
         // 设置收件人们
@@ -160,4 +166,23 @@ public class SimpleMailSender {
         send(recipients, mail.getSubject(), mail.getContent());
     }
 
+
+    /**
+     * 群发邮件
+     *
+     * @param recipients 收件人们
+     * @param mail       邮件对象
+     * @throws AddressException
+     * @throws MessagingException
+     */
+    public void send(String[] recipients, SimpleMail mail)
+            throws AddressException, MessagingException {
+        List<String> recipientList = new ArrayList<>();
+        for (String recipient : recipients) {
+            if (null != recipient && recipient.trim().length() > 0 && !recipientList.contains(recipient.trim())) {
+                recipientList.add(recipient.trim());
+            }
+        }
+        send(recipientList, mail.getSubject(), mail.getContent());
+    }
 }
