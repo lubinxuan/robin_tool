@@ -23,8 +23,19 @@ public class DateEntity extends Entity<Date> {
 
     @Override
     public Date value(Object value) {
+        if (null == value) {
+            return null;
+        }
+
+        String str = String.valueOf(value);
+        if (str.length() < 1) {
+            return null;
+        }
+
         try {
-            return dateFormat.parse(String.valueOf(value));
+            synchronized (dateFormat) {
+                return dateFormat.parse(String.valueOf(value));
+            }
         } catch (ParseException e) {
             e.printStackTrace();
             return null;
