@@ -1,15 +1,32 @@
 package me.robin.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class ListSpilt<T> {
+
     private List<T> originalList;
 
     private int index;
 
     public ListSpilt(List<T> originalList) {
-        this.originalList = null == originalList ? new ArrayList<>() : originalList;
+        if (null == originalList || originalList.isEmpty()) {
+            this.originalList = Collections.emptyList();
+        } else if (originalList instanceof ArrayList) {
+            this.originalList = originalList;
+        } else {
+            this.originalList = new ArrayList<>(originalList);
+        }
+    }
+
+    public ListSpilt(Set<T> originalSet) {
+        if (null == originalSet || originalSet.isEmpty()) {
+            this.originalList = Collections.emptyList();
+        } else {
+            this.originalList = new ArrayList<>(originalSet);
+        }
     }
 
     public List<T> next(int i) {
