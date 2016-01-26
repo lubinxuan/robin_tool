@@ -1,9 +1,6 @@
 package me.robin.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ListSpilt<T> {
 
@@ -11,21 +8,13 @@ public class ListSpilt<T> {
 
     private int index;
 
-    public ListSpilt(List<T> originalList) {
+    public ListSpilt(Collection<T> originalList) {
         if (null == originalList || originalList.isEmpty()) {
             this.originalList = Collections.emptyList();
         } else if (originalList instanceof ArrayList) {
-            this.originalList = originalList;
+            this.originalList = (ArrayList<T>)originalList;
         } else {
             this.originalList = new ArrayList<>(originalList);
-        }
-    }
-
-    public ListSpilt(Set<T> originalSet) {
-        if (null == originalSet || originalSet.isEmpty()) {
-            this.originalList = Collections.emptyList();
-        } else {
-            this.originalList = new ArrayList<>(originalSet);
         }
     }
 
