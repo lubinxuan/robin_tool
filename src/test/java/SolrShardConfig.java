@@ -23,14 +23,13 @@ public class SolrShardConfig {
         //shardReader.addShardConfig("admonitor", "2015_11", "2015-11-01", "2015-12-01");
         //shardReader.addShardConfig("admonitor", "2015_12", "2015-12-01", "2016-01-01");
         ShardConfigHelper helper = new ShardConfigHelper(shardReader.getZooKeeper());
-        //helper.addShardConfig("admonitor", "2016_2", "2016-02-01", "2016-03-01");
-        //helper.delShardConfig("admonitor", "2016_2");
-        helper.delShardConfig("weibo", "2015_1_6");
+        helper.addShardConfig("admonitor", "2016_2", "2016-02-01", "2016-03-01");
+/*        helper.delShardConfig("weibo", "2015_1_6");
         helper.delShardConfig("weibo", "2015_7_12");
         helper.addShardConfig("weibo", "2013_2014", null, "2015-01-01");
         helper.addShardConfig("weibo", "2015_1_4", "2015-01-01", "2015-05-01");
         helper.addShardConfig("weibo", "2015_5_12", "2015-05-01", "2016-01-01");
-        helper.addShardConfig("weibo", "2016_1_3", "2016-01-01", "2016-04-01");
+        helper.addShardConfig("weibo", "2016_1_3", "2016-01-01", "2016-04-01");*/
         /*ShardRouter shardRouter = new ShardRouter(shardReader, "admonitor");
         long s = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(10);

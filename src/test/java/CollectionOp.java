@@ -1,9 +1,11 @@
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.params.UpdateParams;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,9 +21,11 @@ public class CollectionOp {
 
     CloudSolrClient cloudSolrServer;
 
+    String port = "2181";
+
     @Before
     public void setUp() {
-        cloudSolrServer = new CloudSolrClient("172.16.2.30:3181,172.16.2.31:3181,172.16.2.32:3181");
+        cloudSolrServer = new CloudSolrClient("172.16.2.30:" + port + ",172.16.2.31:" + port + ",172.16.2.32:" + port);
         cloudSolrServer.setZkClientTimeout(30000);
         cloudSolrServer.setZkConnectTimeout(30000);
         cloudSolrServer.connect();
@@ -37,19 +41,34 @@ public class CollectionOp {
     public void addShard() throws IOException, SolrServerException {
         CollectionAdminRequest.CreateShard shard = new CollectionAdminRequest.CreateShard();
         shard.setCollectionName("admonitor");
-        shard.setShardName("2016_1");
+        shard.setShardName("2016_2");
+        shard.setNodeSet("172.16.2.30:8891_solr");
         cloudSolrServer.request(shard);
     }
 
     @Test
-    public void addField() throws IOException, SolrServerException {
+    public void addReplica() throws IOException, SolrServerException {
+        CollectionAdminRequest.AddReplica request = new CollectionAdminRequest.AddReplica();
+        request.setCollectionName("admonitor");
+        request.setShardName("2013");
+        request.setNode("172.16.2.30:8891_solr");
+        cloudSolrServer.request(request);
+    }
+
+
+    @Test
+    public void deleteData() throws IOException, SolrServerException {
+        UpdateRequest updateRequest = new UpdateRequest();
+        updateRequest.setParam(UpdateParams.COLLECTION, "video");
+        updateRequest.deleteByQuery("*:*");
+        cloudSolrServer.request(updateRequest);
     }
 
     @Test
     public void test() throws IOException, SolrServerException {
 
 
-        CollectionAdminRequest.Delete delete = new CollectionAdminRequest.Delete();
+       /* CollectionAdminRequest.Delete delete = new CollectionAdminRequest.Delete();
         delete.setCollectionName("weibo");
 
         cloudSolrServer.request(delete);
@@ -65,7 +84,7 @@ public class CollectionOp {
         create.setCollectionName("weibo");
         create.setRouterName("implicit");
         create.setShards("2013_2014,2015_1_4,2015_5_12,2016_1_3");
-        cloudSolrServer.request(create);
+        cloudSolrServer.request(create);*/
 
     }
 
