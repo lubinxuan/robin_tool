@@ -3,6 +3,8 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
+import org.apache.solr.common.cloud.DocCollection;
+import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.params.UpdateParams;
@@ -37,23 +39,6 @@ public class CollectionOp {
     }
 
 
-    @Test
-    public void addShard() throws IOException, SolrServerException {
-        CollectionAdminRequest.CreateShard shard = new CollectionAdminRequest.CreateShard();
-        shard.setCollectionName("admonitor");
-        shard.setShardName("2016_2");
-        shard.setNodeSet("172.16.2.30:8891_solr");
-        cloudSolrServer.request(shard);
-    }
-
-    @Test
-    public void addReplica() throws IOException, SolrServerException {
-        CollectionAdminRequest.AddReplica request = new CollectionAdminRequest.AddReplica();
-        request.setCollectionName("admonitor");
-        request.setShardName("2013");
-        request.setNode("172.16.2.30:8891_solr");
-        cloudSolrServer.request(request);
-    }
 
 
     @Test
@@ -66,6 +51,11 @@ public class CollectionOp {
 
     @Test
     public void test() throws IOException, SolrServerException {
+
+        ZkStateReader stateReader = cloudSolrServer.getZkStateReader();
+        DocCollection collection = ZkStateReader.getCollectionLive(stateReader,"admonitor_test");
+
+        System.out.println();
 
 
        /* CollectionAdminRequest.Delete delete = new CollectionAdminRequest.Delete();
