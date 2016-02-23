@@ -94,7 +94,9 @@ public class ShardRouter {
 
     public Collection<String> selectQueryShard(String collection, String startRoute, String endRoute) {
 
-        Set<String> allShard = shardMap.get(collection).stream().map(Shard::getShard).collect(Collectors.toSet());
+        List<Shard> shardList = shardMap.get(collection);
+
+        Set<String> allShard = shardList.stream().map(Shard::getShard).collect(Collectors.toSet());
 
         if (null == startRoute && null == endRoute) {
             return allShard;
@@ -105,7 +107,6 @@ public class ShardRouter {
         }
 
 
-        List<Shard> shardList = shardMap.get(collection);
         Set<String> pre = new HashSet<>();
         Set<String> aft = new HashSet<>();
         for (Shard shard : shardList) {
