@@ -100,8 +100,8 @@ public class CloudSolrManagerTest {
     @Test
     public void querySolr() throws IOException, SolrServerException {
         SolrQuery query = new SolrQuery();
-        query.setQuery("crawltime:[2015-12-01T23:21:32Z TO *] AND source:news");
-        query.addFilterQuery("crawltime:[2015-12-01T23:21:32Z TO *] AND title:\"诸暨\"");
+        query.setQuery("crawltime:[2015-12-01T23:21:32Z TO 2016-12-01T23:21:32Z] AND source:news");
+        query.addFilterQuery("crawltime:[2015-12-10T23:21:32Z TO 2016-02-01T23:21:32Z] AND title:\"诸暨\"");
         QueryRequest request = new QueryRequest(query, SolrRequest.METHOD.GET);
         cloudSolrServer.request(request, "admonitor");
     }
