@@ -46,7 +46,7 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                     sliceList.add(slice);
                 }
             }
-            if (!shardSet.isEmpty() && params instanceof SolrQuery) {
+            if (!shardSet.isEmpty() && StringUtils.isNotBlank(params.get(ShardParams.SHARDS)) && params instanceof SolrQuery) {
                 ((SolrQuery) params).add(ShardParams.SHARDS, StringUtils.join(shardSet, ","));
             }
             return sliceList;
