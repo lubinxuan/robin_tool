@@ -3,6 +3,15 @@ package me.robin.solr.shard;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.common.cloud.DocCollection;
+import org.apache.solr.common.cloud.DocRouter;
+import org.apache.solr.common.cloud.ImplicitDocRouter;
+import org.apache.solr.common.cloud.Slice;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -10,12 +19,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Created by Lubin.Xuan on 2015/12/23.
@@ -70,13 +79,58 @@ public class ShardRouter {
             return null;
         }
         for (Shard shard : shardMap.get(collection)) {
-            int c1 = null == shard.getStart() ? 1 : routeValue.compareTo(shard.getStart());
-            int c2 = null == shard.getEnd() ? -1 : routeValue.compareTo(shard.getEnd());
-            if (c1 >= 0 && c2 < 0) {
+            if (locate(shard, routeValue)) {
                 return shard.getShard();
             }
         }
         return null;
+    }
+
+    private boolean locate(Shard shard, String routeValue) {
+        int c1 = null == shard.getStart() ? 1 : routeValue.compareTo(shard.getStart());
+        int c2 = null == shard.getEnd() ? -1 : routeValue.compareTo(shard.getEnd());
+        return c1 >= 0 && c2 < 0;
+    }
+
+    public Collection<String> selectQueryShard(String collection, String startRoute, String endRoute) {
+
+        Set<String> allShard = shardMap.get(collection).stream().map(Shard::getShard).collect(Collectors.toSet());
+
+        if (null == startRoute && null == endRoute) {
+            return allShard;
+        }
+
+        if (StringUtils.equals(startRoute, endRoute) && null != startRoute && !"*".equals(startRoute)) {
+            return Collections.singleton(locateShard(collection, startRoute));
+        }
+
+
+        List<Shard> shardList = shardMap.get(collection);
+        Set<String> pre = new HashSet<>();
+        Set<String> aft = new HashSet<>();
+        for (Shard shard : shardList) {
+
+            if (null != startRoute) {
+                int c2 = null == shard.getEnd() ? -1 : startRoute.compareTo(shard.getEnd());
+                if (c2 < 0) {
+                    pre.add(shard.getShard());
+                }
+            }
+            if (null != endRoute) {
+                int c1 = null == shard.getStart() ? 1 : endRoute.compareTo(shard.getStart());
+                if (c1 >= 0) {
+                    aft.add(shard.getShard());
+                }
+            }
+        }
+
+        if (null == startRoute) {
+            return aft;
+        } else if (null == endRoute) {
+            return pre;
+        } else {
+            return CollectionUtils.intersection(pre, aft);
+        }
     }
 
     public boolean isImplicit(String collection) {
@@ -193,4 +247,9 @@ public class ShardRouter {
             return end;
         }
     }
+
+    public interface ShardRouterKeyParser {
+        public String[] parse(String collection, String q, String fq);
+    }
+
 }
