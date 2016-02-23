@@ -7,8 +7,8 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
+import org.apache.solr.common.util.NamedList;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +28,7 @@ public class CloudSolrManagerTest {
 
     @Before
     public void setUp() throws InterruptedException, UnsupportedEncodingException, KeeperException, NoSuchFieldException, IllegalAccessException {
-        HttpClientUtil.addRequestInterceptor(new TestHttpRequestInterceptor());
+        //HttpClientUtil.addRequestInterceptor(new TestHttpRequestInterceptor());
         cloudSolrServer = new CloudSolrClient("172.16.2.30:" + port + ",172.16.2.31:" + port + ",172.16.2.32:" + port);
         cloudSolrServer.setZkClientTimeout(30000);
         cloudSolrServer.setZkConnectTimeout(30000);
@@ -103,6 +103,7 @@ public class CloudSolrManagerTest {
         query.setQuery("crawltime:[2015-12-01T23:21:32Z TO 2016-12-01T23:21:32Z] AND source:news");
         query.addFilterQuery("crawltime:[2015-12-10T23:21:32Z TO 2016-02-01T23:21:32Z] AND title:\"诸暨\"");
         QueryRequest request = new QueryRequest(query, SolrRequest.METHOD.GET);
-        cloudSolrServer.request(request, "admonitor");
+        NamedList val = cloudSolrServer.request(request, "admonitor");
+        System.out.println(val);
     }
 }
