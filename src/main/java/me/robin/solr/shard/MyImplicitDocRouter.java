@@ -19,6 +19,7 @@ import java.util.function.BiFunction;
 
 /**
  * Created by Lubin.Xuan on 2016/2/22.
+ * 负责选定具体要查询的节点列表
  */
 public class MyImplicitDocRouter extends ImplicitDocRouter {
 
@@ -49,7 +50,6 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
         if (params instanceof SolrQuery) {
 
             if (StringUtils.isNotBlank(params.get(ShardParams.SHARDS))) {
-                Set<String> shardNameSet = new HashSet<>();
                 List<Slice> sliceList = new ArrayList<>();
                 String shardInfo = params.get(ShardParams.SHARDS);
                 String[] shardArr = shardInfo.split(",");
@@ -63,7 +63,6 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                             Slice tmp = collection.getSlice(sliceCacheName);
                             if (tmp != null && tmp.getState() == Slice.State.ACTIVE) {
                                 sliceList.add(tmp);
-                                shardNameSet.add(tmp.getName());
                                 break;
                             }
                             for (Slice slice : activeSlices) {
@@ -71,7 +70,6 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                                 for (Replica replica : replicas) {
                                     if ((replica.getStr(ZkStateReader.BASE_URL_PROP) + "/" + collection.getName()).contains(replicaSer)) {
                                         sliceList.add(slice);
-                                        shardNameSet.add(slice.getName());
                                         shardSliceCache.put(replicaSer, slice.getName());
                                         break replicaServersLoop;
                                     }
@@ -82,15 +80,9 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                         Slice slice = collection.getSlice(shard);
                         if (null != slice && slice.getState() == Slice.State.ACTIVE) {
                             sliceList.add(slice);
-                            shardNameSet.add(shard);
                         }
                     }
                 }
-                if (!shardNameSet.isEmpty()) {
-                    ((SolrQuery) params).set(ShardParams.SHARDS, StringUtils.join(shardNameSet, ","));
-                    logger.debug("查询分片节点:{} {}", collection.getName(), shardNameSet);
-                }
-
                 sliceCollection = sliceList;
             } else if (null == shardKey && shardRouter.isImplicit(collection.getName())) {
                 String q = params.get(CommonParams.Q);
@@ -104,21 +96,10 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                         sliceList.add(slice);
                     }
                 }
-
-                if (!shardSet.isEmpty()) {
-                    ((SolrQuery) params).set(ShardParams.SHARDS, StringUtils.join(shardSet, ","));
-                    logger.debug("查询分片节点:{} {}", collection.getName(), shardSet);
-                }
-
                 sliceCollection = sliceList;
             } else {
                 sliceCollection = super.getSearchSlicesSingle(shardKey, params, collection);
             }
-            if (sliceCollection.size() == 1) {
-                //直连查询
-                ((SolrQuery) params).add(CommonParams.DISTRIB, "false");
-            }
-
             SLICES_CURRENT.set(sliceCollection);
         } else {
             sliceCollection = super.getSearchSlicesSingle(shardKey, params, collection);
