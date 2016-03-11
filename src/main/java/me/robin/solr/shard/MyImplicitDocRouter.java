@@ -80,7 +80,7 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                         }
                     } else {
                         Slice slice = collection.getSlice(shard);
-                        if (null != slice) {
+                        if (null != slice && slice.getState() == Slice.State.ACTIVE) {
                             sliceList.add(slice);
                             shardNameSet.add(shard);
                         }
@@ -98,6 +98,12 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                 String[] keyValue = routerKeyParser.parse(collection.getName(), q, fq);
                 Collection<String> shardSet = shardRouter.selectQueryShard(collection.getName(), keyValue[0], keyValue[1]);
                 List<Slice> sliceList = new ArrayList<>();
+                for (String shardName : shardSet) {
+                    Slice slice = collection.getSlice(shardName);
+                    if (null != slice && slice.getState() == Slice.State.ACTIVE) {
+                        sliceList.add(slice);
+                    }
+                }
 
                 if (!shardSet.isEmpty()) {
                     ((SolrQuery) params).set(ShardParams.SHARDS, StringUtils.join(shardSet, ","));
