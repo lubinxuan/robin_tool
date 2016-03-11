@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Default suite">
+    <listeners>
+        <listener class-name="org.uncommons.reportng.HTMLReporter"/>
+    </listeners>
+    <test verbose="1" name="simple">
+        <classes>
+            <class name="me.robin.solr.TestSolrParallel">
+                <methods>
+                    <include name="test10"/>
+                    <include name="test20"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+</suite>

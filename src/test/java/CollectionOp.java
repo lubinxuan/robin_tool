@@ -23,11 +23,11 @@ public class CollectionOp {
 
     CloudSolrClient cloudSolrServer;
 
-    String port = "2181";
+    String port = "3181";
 
     @Before
     public void setUp() {
-        cloudSolrServer = new CloudSolrClient("172.16.2.30:" + port + ",172.16.2.31:" + port + ",172.16.2.32:" + port);
+        cloudSolrServer = new CloudSolrClient("10.2.30.192:2181");
         cloudSolrServer.setZkClientTimeout(30000);
         cloudSolrServer.setZkConnectTimeout(30000);
         cloudSolrServer.connect();
@@ -39,6 +39,14 @@ public class CollectionOp {
     }
 
 
+    @Test
+    public void addReplica() throws IOException, SolrServerException {
+        CollectionAdminRequest.AddReplica addReplica = new CollectionAdminRequest.AddReplica();
+        addReplica.setNode("172.16.2.17:8888_solr");
+        addReplica.setShardName("2015_11");
+        addReplica.setCollectionName("admonitor");
+        cloudSolrServer.request(addReplica);
+    }
 
 
     @Test
@@ -85,7 +93,8 @@ public class CollectionOp {
         CollectionAdminRequest.Create create = new CollectionAdminRequest.Create();
         create.setMaxShardsPerNode(2);
         create.setNumShards(3);
-        create.setCollectionName("wb_user");
+        create.setCollectionName("test_col");
+        create.setConfigName("secret");
         cloudSolrServer.request(create);
 
     }

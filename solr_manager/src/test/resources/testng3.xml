@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Default suite">
+    <listeners>
+        <listener class-name="org.uncommons.reportng.HTMLReporter"/>
+    </listeners>
+    <test verbose="1" name="simple">
+        <classes>
+            <class name="me.robin.solr.TestSolrParallel">
+                <methods>
+                    <include name="test10"/>
+                    <include name="test20"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test verbose="2" name="30 test">
+        <classes>
+            <class name="me.robin.solr.TestSolrParallel">
+                <methods>
+                    <include name="test30"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test verbose="3" name="50 test">
+        <classes>
+            <class name="me.robin.solr.TestSolrParallel">
+                <methods>
+                    <include name="test50"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test verbose="4" name="70 test">
+        <classes>
+            <class name="me.robin.solr.TestSolrParallel">
+                <methods>
+                    <include name="test70"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test verbose="5" name="90 test">
+        <classes>
+            <class name="me.robin.solr.TestSolrParallel">
+                <methods>
+                    <include name="test90"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+</suite>
