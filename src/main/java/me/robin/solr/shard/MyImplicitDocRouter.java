@@ -43,112 +43,80 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
     @Override
     public Collection<Slice> getSearchSlicesSingle(String shardKey, SolrParams params, DocCollection collection) {
 
-        SLICES_CURRENT.remove();
-
         Collection<Slice> sliceCollection;
 
-        if (StringUtils.isNotBlank(params.get(ShardParams.SHARDS))) {
-            Set<String> shardNameSet = new HashSet<>();
-            List<Slice> sliceList = new ArrayList<>();
-            String shardInfo = params.get(ShardParams.SHARDS);
-            String[] shardArr = shardInfo.split(",");
-            Collection<Slice> activeSlices = collection.getActiveSlices();
-            for (String shard : shardArr) {
-                if (shard.contains("/solr/")) {
-                    String replicaServers[] = shard.split("\\|");
-                    replicaServersLoop:
-                    for (String replicaSer : replicaServers) {
-                        String sliceCacheName = shardSliceCache.get(replicaSer);
-                        Slice tmp = collection.getSlice(sliceCacheName);
-                        if (tmp != null && tmp.getState() == Slice.State.ACTIVE) {
-                            sliceList.add(tmp);
-                            shardNameSet.add(tmp.getName());
-                            break;
-                        }
-                        for (Slice slice : activeSlices) {
-                            Collection<Replica> replicas = slice.getReplicas();
-                            for (Replica replica : replicas) {
-                                if ((replica.getStr(ZkStateReader.BASE_URL_PROP) + "/" + collection.getName()).contains(replicaSer)) {
-                                    sliceList.add(slice);
-                                    shardNameSet.add(slice.getName());
-                                    shardSliceCache.put(replicaSer, slice.getName());
-                                    break replicaServersLoop;
+        SLICES_CURRENT.remove();
+        if (params instanceof SolrQuery) {
+
+            if (StringUtils.isNotBlank(params.get(ShardParams.SHARDS))) {
+                Set<String> shardNameSet = new HashSet<>();
+                List<Slice> sliceList = new ArrayList<>();
+                String shardInfo = params.get(ShardParams.SHARDS);
+                String[] shardArr = shardInfo.split(",");
+                Collection<Slice> activeSlices = collection.getActiveSlices();
+                for (String shard : shardArr) {
+                    if (shard.contains("/solr/")) {
+                        String replicaServers[] = shard.split("\\|");
+                        replicaServersLoop:
+                        for (String replicaSer : replicaServers) {
+                            String sliceCacheName = shardSliceCache.get(replicaSer);
+                            Slice tmp = collection.getSlice(sliceCacheName);
+                            if (tmp != null && tmp.getState() == Slice.State.ACTIVE) {
+                                sliceList.add(tmp);
+                                shardNameSet.add(tmp.getName());
+                                break;
+                            }
+                            for (Slice slice : activeSlices) {
+                                Collection<Replica> replicas = slice.getReplicas();
+                                for (Replica replica : replicas) {
+                                    if ((replica.getStr(ZkStateReader.BASE_URL_PROP) + "/" + collection.getName()).contains(replicaSer)) {
+                                        sliceList.add(slice);
+                                        shardNameSet.add(slice.getName());
+                                        shardSliceCache.put(replicaSer, slice.getName());
+                                        break replicaServersLoop;
+                                    }
                                 }
                             }
                         }
-                    }
-                } else {
-                    Slice slice = collection.getSlice(shard);
-                    if (null != slice) {
-                        sliceList.add(slice);
-                        shardNameSet.add(shard);
-                    }
-                }
-            }
-            if (!shardNameSet.isEmpty()) {
-                ((SolrQuery) params).set(ShardParams.SHARDS, StringUtils.join(shardNameSet, ","));
-                logger.debug("查询分片节点:{} {}", collection.getName(), shardNameSet);
-            }
-
-            sliceCollection = sliceList;
-        } else if (null == shardKey && shardRouter.isImplicit(collection.getName())) {
-            String q = params.get(CommonParams.Q);
-            String fq = params.get(CommonParams.FQ);
-            String[] keyValue = routerKeyParser.parse(collection.getName(), q, fq);
-            Collection<String> shardSet = shardRouter.selectQueryShard(collection.getName(), keyValue[0], keyValue[1]);
-            List<String> shardList = new ArrayList<>();
-            List<Slice> sliceList = new ArrayList<>();
-
-            for (String shard : shardSet) {
-                Slice slice = collection.getSlice(shard);
-                if (null != slice) {
-                    sliceList.add(slice);
-                    Replica leader = slice.getLeader();
-                    Replica target = null;
-                    for (Iterator<Replica> iterator = slice.getReplicas().iterator(); iterator.hasNext(); ) {
-                        Replica replica = iterator.next();
-
-                        if (replica.equals(leader)) {
-                            continue;
-                        }
-
-                        if (!Replica.State.ACTIVE.equals(replica.getState())) {
-                            continue;
-                        }
-
-                        target = replica;
-                    }
-
-                    if (target == null) {
-                        shardList.add(leader.getCoreUrl());
                     } else {
-
+                        Slice slice = collection.getSlice(shard);
+                        if (null != slice) {
+                            sliceList.add(slice);
+                            shardNameSet.add(shard);
+                        }
                     }
                 }
-            }
+                if (!shardNameSet.isEmpty()) {
+                    ((SolrQuery) params).set(ShardParams.SHARDS, StringUtils.join(shardNameSet, ","));
+                    logger.debug("查询分片节点:{} {}", collection.getName(), shardNameSet);
+                }
 
-            if (params instanceof SolrQuery) {
+                sliceCollection = sliceList;
+            } else if (null == shardKey && shardRouter.isImplicit(collection.getName())) {
+                String q = params.get(CommonParams.Q);
+                String fq = params.get(CommonParams.FQ);
+                String[] keyValue = routerKeyParser.parse(collection.getName(), q, fq);
+                Collection<String> shardSet = shardRouter.selectQueryShard(collection.getName(), keyValue[0], keyValue[1]);
+                List<Slice> sliceList = new ArrayList<>();
 
                 if (!shardSet.isEmpty()) {
                     ((SolrQuery) params).set(ShardParams.SHARDS, StringUtils.join(shardSet, ","));
                     logger.debug("查询分片节点:{} {}", collection.getName(), shardSet);
                 }
 
+                sliceCollection = sliceList;
+            } else {
+                sliceCollection = super.getSearchSlicesSingle(shardKey, params, collection);
             }
-
-            sliceCollection = sliceList;
-        } else {
-            sliceCollection = super.getSearchSlicesSingle(shardKey, params, collection);
-        }
-        if (params instanceof SolrQuery) {
             if (sliceCollection.size() == 1) {
                 //直连查询
                 ((SolrQuery) params).add(CommonParams.DISTRIB, "false");
             }
+
+            SLICES_CURRENT.set(sliceCollection);
+        } else {
+            sliceCollection = super.getSearchSlicesSingle(shardKey, params, collection);
         }
-
-        SLICES_CURRENT.set(sliceCollection);
-
         return sliceCollection;
     }
 
