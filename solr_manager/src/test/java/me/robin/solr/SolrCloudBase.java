@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.*;
+import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.zookeeper.KeeperException;
@@ -82,6 +83,11 @@ public class SolrCloudBase {
 
             @Override
             public synchronized List<String> select(List<String> servers) {
+
+                Collection<Slice> slices = MyImplicitDocRouter.currentSlices();
+
+
+
                 String nodeSelect;
                 Long preCount;
                 for (String server : servers) {

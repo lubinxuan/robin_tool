@@ -180,8 +180,4 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
         }
     }
 
-    public interface ServerSelector {
-        public List<String> select(List<String> servers);
-    }
-
 }
