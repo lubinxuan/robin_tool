@@ -13,9 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 
 /**
  * Created by Lubin.Xuan on 2016/2/22.
@@ -48,6 +50,8 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
 
         SLICES_CURRENT.remove();
         if (params instanceof SolrQuery) {
+
+            SolrQuery query = (SolrQuery)params;
 
             if (StringUtils.isNotBlank(params.get(ShardParams.SHARDS))) {
                 List<Slice> sliceList = new ArrayList<>();
@@ -85,7 +89,7 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
                 }
                 sliceCollection = sliceList;
             } else if (null == shardKey && shardRouter.isImplicit(collection.getName())) {
-                String q = params.get(CommonParams.Q);
+                String q = query.getQuery();
                 String fq = params.get(CommonParams.FQ);
                 String[] keyValue = routerKeyParser.parse(collection.getName(), q, fq);
                 Collection<String> shardSet = shardRouter.selectQueryShard(collection.getName(), keyValue[0], keyValue[1]);
