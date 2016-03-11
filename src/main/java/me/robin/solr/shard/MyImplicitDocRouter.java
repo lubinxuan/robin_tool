@@ -24,8 +24,6 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
 
     private static final Logger logger = LoggerFactory.getLogger(MyImplicitDocRouter.class);
 
-    public static final String SINGLE_SHARDS_QUERY = "_single_shards_query_";
-
     private ShardRouter shardRouter;
     private ShardRouter.ShardRouterKeyParser routerKeyParser;
 
@@ -144,7 +142,6 @@ public class MyImplicitDocRouter extends ImplicitDocRouter {
         }
         if (params instanceof SolrQuery) {
             if (sliceCollection.size() == 1) {
-                ((SolrQuery) params).add(SINGLE_SHARDS_QUERY, "true");
                 //直连查询
                 ((SolrQuery) params).add(CommonParams.DISTRIB, "false");
             }

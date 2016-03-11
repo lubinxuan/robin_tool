@@ -27,7 +27,7 @@ public class CollectionOp {
 
     @Before
     public void setUp() {
-        cloudSolrServer = new CloudSolrClient("10.2.30.192:2181");
+        cloudSolrServer = new CloudSolrClient("172.16.2.30:3181");
         cloudSolrServer.setZkClientTimeout(30000);
         cloudSolrServer.setZkConnectTimeout(30000);
         cloudSolrServer.connect();
@@ -42,9 +42,9 @@ public class CollectionOp {
     @Test
     public void addReplica() throws IOException, SolrServerException {
         CollectionAdminRequest.AddReplica addReplica = new CollectionAdminRequest.AddReplica();
-        addReplica.setNode("172.16.2.17:8888_solr");
-        addReplica.setShardName("2015_11");
-        addReplica.setCollectionName("admonitor");
+        addReplica.setNode("172.16.2.30:8891_solr");
+        addReplica.setShardName("2016_1_3");
+        addReplica.setCollectionName("weibo");
         cloudSolrServer.request(addReplica);
     }
 
