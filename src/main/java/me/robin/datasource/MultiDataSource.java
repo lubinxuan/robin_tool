@@ -10,7 +10,6 @@ import java.util.Stack;
  */
 public class MultiDataSource extends AbstractRoutingDataSource {
 
-    private static final ThreadLocal<String> DATASOURCE_KEY_2 = new ThreadLocal<String>();
     private static final ThreadLocal<Stack<String>> DATASOURCE_KEY = new ThreadLocal<Stack<String>>() {
         @Override
         protected Stack<String> initialValue() {
