@@ -2,11 +2,9 @@ package me.robin.solr;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
-import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.UpdateParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
@@ -22,7 +20,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Lubin.Xuan on 2016/2/29.
@@ -144,9 +141,9 @@ public class TestSolrParallel extends SolrCloudBase {
         }
 
         query.setQuery(q.toString());
-        query.addFilterQuery("crawltime:[2015-11-01T00:00:00Z TO 2015-11-30T23:23:59Z]");
-        query.setParam(ShardParams.SHARDS, "172.16.2.17:8888/solr/admonitor");
-        //query.setParam(CommonParams.DEBUG_QUERY, true);
+        query.addFilterQuery("crawltime:[2015-11-01T00:00:00Z TO 2015-12-30T23:23:59Z]");
+        //query.setParam(ShardParams.SHARDS, "172.16.2.17:8888/solr/admonitor");
+        query.setParam(CommonParams.DEBUG_QUERY, true);
         query.addSort("crawltime", SolrQuery.ORDER.desc);
         if (!CONTENT) {
             query.setFields("comment_count,author,crawltime,webname,click_count,source,title,seed_id,url,weburl,pubtime,region,docid");
