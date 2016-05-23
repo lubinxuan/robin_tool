@@ -48,6 +48,24 @@ public class CollectionOp {
         cloudSolrServer.request(addReplica);
     }
 
+    @Test
+    public void delReplica() throws IOException, SolrServerException {
+        CollectionAdminRequest.DeleteReplica deleteReplicaReplica = new CollectionAdminRequest.DeleteReplica();
+        deleteReplicaReplica.setShardName("2016_1_3");
+        deleteReplicaReplica.setCollectionName("weibo");
+        deleteReplicaReplica.setReplica("core_node5");
+        cloudSolrServer.request(deleteReplicaReplica);
+    }
+
+
+
+    @Test
+    public void delShard() throws IOException, SolrServerException {
+        CollectionAdminRequest.DeleteShard deleteShard = new CollectionAdminRequest.DeleteShard();
+        deleteShard.setShardName("2015_1_4");
+        deleteShard.setCollectionName("weibo");
+        cloudSolrServer.request(deleteShard);
+    }
 
     @Test
     public void deleteData() throws IOException, SolrServerException {

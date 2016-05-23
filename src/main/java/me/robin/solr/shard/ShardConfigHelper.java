@@ -13,7 +13,7 @@ import java.util.List;
  * Created by Lubin.Xuan on 2015/12/23.
  */
 public class ShardConfigHelper extends ShardRouter.ShardReader {
-    public ShardConfigHelper(String zkHost) throws IOException {
+    public ShardConfigHelper(String zkHost) throws IOException, KeeperException, InterruptedException {
         super(zkHost);
     }
 

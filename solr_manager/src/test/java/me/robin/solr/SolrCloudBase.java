@@ -4,10 +4,7 @@ import me.robin.solr.shard.MyImplicitDocRouter;
 import me.robin.solr.shard.ShardRouter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.*;
-import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.zookeeper.KeeperException;
@@ -15,9 +12,8 @@ import org.testng.annotations.BeforeTest;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Lubin.Xuan on 2016/3/1.
@@ -58,7 +54,7 @@ public class SolrCloudBase {
                 String[] timeRange = new String[]{null, null};
 
                 if (null != q && q.contains(routeField)) {
-                    String val = MyImplicitDocRouter.queryValue(routeField, fq);
+                    String val = MyImplicitDocRouter.queryValue(routeField, q);
                     if (findTime(val, timeRange)) {
                         return timeRange;
                     }

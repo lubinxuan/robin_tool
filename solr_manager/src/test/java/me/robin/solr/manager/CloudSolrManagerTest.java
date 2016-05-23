@@ -20,7 +20,7 @@ public class CloudSolrManagerTest extends SolrCloudBase {
     @Test
     public void create2016_3() throws InterruptedException, SolrServerException, KeeperException, IOException {
         CloudSolrManager solrManager = new CloudSolrManager("admonitor", cloudSolrServer);
-        solrManager.createShard("2016_4", "2016-04-01", "2016-05-01");
+        solrManager.createShard("2016_5", "2016-05-01", "2016-06-01");
     }
 
 

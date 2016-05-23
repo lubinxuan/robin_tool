@@ -1,13 +1,23 @@
 import me.robin.solr.shard.ShardConfigHelper;
 import me.robin.solr.shard.ShardRouter;
 import org.apache.zookeeper.KeeperException;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.function.BiFunction;
 
 /**
  * Created by Lubin.Xuan on 2015/12/23.
  */
 public class SolrShardConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(SolrShardConfig.class);
+
     public static void main(String[] args) throws InterruptedException, IOException, KeeperException {
         ShardRouter.ShardReader shardReader = new ShardRouter.ShardReader("172.16.2.30:3181,172.16.2.31:3181,172.16.2.32:3181");
         //shardReader.addShardConfig("admonitor", "2013", null, "2014-01-01");
@@ -46,5 +56,56 @@ public class SolrShardConfig {
         }
         latch.await();
         System.out.println(System.currentTimeMillis() - s);*/
+    }
+
+
+    @Test
+    public void createWeekRouteInfo() throws ParseException, IOException, KeeperException, InterruptedException {
+        String start = "2016-01-31";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy'W'ww");
+        Date s = sdf.parse(start);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(s);
+        Map<String, D> data = new TreeMap<String, D>(String::compareTo);
+        for (int i = 0; i < 1000; i++) {
+            String yw = sdf2.format(calendar.getTime());
+            Date date = calendar.getTime();
+            data.compute(yw, new BiFunction<String, D, D>() {
+                @Override
+                public D apply(String s, D d) {
+                    if (null == d) {
+                        d = new D();
+                        d.s = date;
+                    } else {
+                        d.e = date;
+                    }
+                    return d;
+                }
+            });
+            calendar.add(Calendar.DATE, 1);
+        }
+
+        List<ShardRouter.Shard> shardList = new ArrayList<>();
+        for (Map.Entry<String, D> entry : data.entrySet()) {
+            calendar.setTime(entry.getValue().e);
+            calendar.add(Calendar.DATE,1);
+            Date end = calendar.getTime();
+            ShardRouter.Shard shard = new ShardRouter.Shard(entry.getKey(), sdf.format(entry.getValue().s), sdf.format(end));
+
+            shardList.add(shard);
+        }
+
+
+        ShardRouter.ShardReader shardReader = new ShardRouter.ShardReader("172.16.8.33:4181");
+        ShardConfigHelper helper = new ShardConfigHelper(shardReader.getZooKeeper());
+        helper.addShardConfig("dmb",shardList);
+
+        System.out.println();
+
+    }
+
+    class D {
+        Date s, e;
     }
 }

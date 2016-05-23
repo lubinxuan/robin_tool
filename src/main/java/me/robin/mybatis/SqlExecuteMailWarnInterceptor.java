@@ -31,6 +31,8 @@ import java.util.concurrent.Executors;
 })
 public class SqlExecuteMailWarnInterceptor implements Interceptor {
 
+    public static final String MAIL_SUFFIX = "mybatis.mail.sender.suffix";
+
     private static final Logger logger = LoggerFactory.getLogger(SqlExecuteMailWarnInterceptor.class);
 
     private static final String HOST = IpUtils.getLocalIp();
@@ -52,6 +54,10 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
         String smtp = prop.getProperty("warn.mail.server");
         String user = prop.getProperty("warn.mail.sender");
         String senderViewName = prop.getProperty("warn.mail.senderViewName");
+        String sender_suffix = System.getProperty(MAIL_SUFFIX);
+        if (StringUtils.isNotBlank(sender_suffix)) {
+            senderViewName = senderViewName + "_" + sender_suffix;
+        }
         String pwd = prop.getProperty("warn.mail.password");
         if (StringUtils.isBlank(user) && StringUtils.isBlank(pwd)) {
             return;
@@ -127,7 +133,7 @@ public class SqlExecuteMailWarnInterceptor implements Interceptor {
                     content.append("方法:").append(method).append("<br/>");
                     content.append("异常发生次数:").append(warningLog.errorCount()).append("<br/>");
                     content.append("SQL:").append(sql).append("<br/>");
-                    r.printStackTrace(new PrintStream(outputStream,false,Const._UTF_8));
+                    r.printStackTrace(new PrintStream(outputStream, false, Const._UTF_8));
                     content.append(outputStream.toString(Const._UTF_8).replaceAll("\n", "<br/>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;").replaceAll(" ", "&nbsp;"));
                     simpleMailSender.send(recipients, "SQL异常报警-" + method, content);
                 } catch (Throwable ignore) {

@@ -8,8 +8,9 @@ public class TimeTicker {
     private long now = System.currentTimeMillis();
 
     public long time() {
-        long pas = System.currentTimeMillis() - now;
-        now = System.currentTimeMillis();
+        long c = System.currentTimeMillis();
+        long pas = c - now;
+        now = c;
         return pas;
     }
 }

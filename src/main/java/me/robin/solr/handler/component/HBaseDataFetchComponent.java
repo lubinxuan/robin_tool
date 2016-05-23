@@ -1,6 +1,5 @@
 package me.robin.solr.handler.component;
 
-import me.robin.hbase.CollectionStore;
 import me.robin.solr.util.*;
 import org.apache.lucene.document.Document;
 import org.apache.solr.common.util.NamedList;
@@ -37,7 +36,7 @@ public class HBaseDataFetchComponent extends SearchComponent {
 
     private static final String CORE_NAME = "coreName";
 
-    boolean process = false;
+    private boolean process = false;
 
     @Override
     public void prepare(ResponseBuilder rb) throws IOException {

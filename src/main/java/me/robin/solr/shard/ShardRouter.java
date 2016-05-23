@@ -148,13 +148,17 @@ public class ShardRouter {
 
         protected ZooKeeper zooKeeper;
 
-        public ShardReader(String zkHost) throws IOException {
+        public ShardReader(String zkHost) throws IOException, KeeperException, InterruptedException {
             this.zooKeeper = new ZooKeeper(zkHost, 10000, new Watcher() {
                 @Override
                 public void process(WatchedEvent watchedEvent) {
                     logger.debug("回调watcher实例： 路径 {} 类型：{}", watchedEvent.getPath(), watchedEvent.getType());
                 }
             });
+
+            if (zooKeeper.exists("/implicit", false) == null) {
+                zooKeeper.create("/implicit", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            }
         }
 
         public ShardReader(ZooKeeper zooKeeper) {
