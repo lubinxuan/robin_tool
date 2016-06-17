@@ -27,7 +27,7 @@ public class CollectionOp {
 
     @Before
     public void setUp() {
-        cloudSolrServer = new CloudSolrClient("172.16.2.30:3181");
+        cloudSolrServer = new CloudSolrClient("172.16.2.31:4181");
         cloudSolrServer.setZkClientTimeout(30000);
         cloudSolrServer.setZkConnectTimeout(30000);
         cloudSolrServer.connect();
@@ -62,10 +62,20 @@ public class CollectionOp {
     @Test
     public void delShard() throws IOException, SolrServerException {
         CollectionAdminRequest.DeleteShard deleteShard = new CollectionAdminRequest.DeleteShard();
-        deleteShard.setShardName("2015_1_4");
-        deleteShard.setCollectionName("weibo");
+        deleteShard.setShardName("2016W10");
+        deleteShard.setCollectionName("dmb2");
         cloudSolrServer.request(deleteShard);
     }
+
+    @Test
+    public void addShard() throws IOException, SolrServerException {
+        CollectionAdminRequest.CreateShard createShard = new CollectionAdminRequest.CreateShard();
+        createShard.setShardName("2016W27");
+        createShard.setCollectionName("dmb2");
+        createShard.setNodeSet("172.16.2.31:9998_solr");
+        cloudSolrServer.request(createShard);
+    }
+
 
     @Test
     public void deleteData() throws IOException, SolrServerException {
