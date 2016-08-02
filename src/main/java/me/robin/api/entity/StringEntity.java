@@ -1,5 +1,6 @@
 package me.robin.api.entity;
 
+import com.alibaba.fastjson.JSONArray;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -21,6 +22,11 @@ public class StringEntity extends Entity<String> {
         if (null != value && value.getClass().isArray()) {
             return StringUtils.join((Object[]) value, ",");
         }
+
+        if (value instanceof JSONArray && ((JSONArray) value).isEmpty()) {
+            return null;
+        }
+
         return String.valueOf(value);
     }
 }
