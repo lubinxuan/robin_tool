@@ -1,16 +1,22 @@
 package me.robin.api.entity;
 
+import org.jsoup.safety.Whitelist;
+
 /**
  * Created by Lubin.Xuan on 2015/10/12.
  * ie.
  */
 public abstract class Entity<T> {
 
+    protected static final Whitelist NONE = Whitelist.none();
+
     private String key;
     private String mapping;
 
+    protected boolean htmlClean;
+
     public Entity(String key) {
-        this(key,key);
+        this(key, key);
     }
 
     public Entity(String key, String mapping) {
@@ -27,4 +33,9 @@ public abstract class Entity<T> {
     }
 
     public abstract T value(Object value);
+
+    public Entity<T> setHtmlClean(boolean htmlClean) {
+        this.htmlClean = htmlClean;
+        return this;
+    }
 }

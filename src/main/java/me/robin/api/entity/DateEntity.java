@@ -1,5 +1,9 @@
 package me.robin.api.entity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,7 +31,25 @@ public class DateEntity extends Entity<Date> {
             return null;
         }
 
-        String str = String.valueOf(value);
+        if (value instanceof Long) {
+            String str = String.valueOf(value);
+            int len = StringUtils.length(str);
+            if (len == 10) {
+                return new Date(((Long) value) * 1000);
+            } else if (len == 13) {
+                return new Date((Long) value);
+            }
+        }
+
+
+        String str;
+
+        if (htmlClean) {
+            str = Jsoup.clean(String.valueOf(value), NONE);
+        } else {
+            str = String.valueOf(value);
+        }
+
         if (str.length() < 1) {
             return null;
         }
