@@ -176,6 +176,7 @@ public class ShardRouter {
                 byte[] data = read(collection);
                 if (null != data) {
                     JSONObject object = JSON.parseObject(data, JSONObject.class);
+                    logger.info("路由信息获取成功 {}:{}", collection, object.toJSONString());
                     List<Shard> shardList = new ArrayList<>();
                     for (String shard : object.keySet()) {
                         JSONObject range = object.getJSONObject(shard);
