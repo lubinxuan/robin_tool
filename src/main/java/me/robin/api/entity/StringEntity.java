@@ -27,6 +27,12 @@ public class StringEntity extends Entity<String> {
             return null;
         }
 
-        return String.valueOf(value);
+        String _value = String.valueOf(value);
+
+        if(StringUtils.isBlank(_value)){
+            return null;
+        }
+
+        return _value;
     }
 }

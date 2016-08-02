@@ -87,7 +87,10 @@ public class JsonExtractor extends DataExtractor {
             } else {
                 Object val = PathReader.read(data, builder.eval(entity.mapping()));
                 if (null != val) {
-                    result.put(entity.key(), entity.value(val));
+                    val = entity.value(val);
+                    if (null != val) {
+                        result.put(entity.key(), val);
+                    }
                 }
             }
         }
