@@ -1,5 +1,7 @@
 package me.robin.server;
 
+import org.springframework.beans.factory.annotation.Value;
+
 /**
  * Created by Lubin.Xuan on 2015/10/8.
  * ie.
@@ -8,7 +10,10 @@ public abstract class CommandHandler {
 
     private ServiceController controller;
 
-    public synchronized void init(int port) {
+    @Value("${controller.port:55555}")
+    private int port;
+
+    public synchronized void init() {
         if (null == controller) {
             controller = new ServiceController(port, this);
         }
