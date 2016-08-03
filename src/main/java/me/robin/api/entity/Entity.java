@@ -34,8 +34,8 @@ public abstract class Entity<T> {
 
     public abstract T value(Object value);
 
-    public Entity<T> setHtmlClean(boolean htmlClean) {
-        this.htmlClean = htmlClean;
+    public Entity<T> htmlClean() {
+        this.htmlClean = true;
         return this;
     }
 }

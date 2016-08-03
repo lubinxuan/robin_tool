@@ -5,6 +5,15 @@ package me.robin.server;
  * ie.
  */
 public abstract class CommandHandler {
+
+    private ServiceController controller;
+
+    public synchronized void init(int port) {
+        if (null == controller) {
+            controller = new ServiceController(port, this);
+        }
+    }
+
     public abstract Object handle(String command);
 
     protected String defaultMsg(String command) {
