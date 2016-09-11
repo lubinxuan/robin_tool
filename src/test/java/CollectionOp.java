@@ -42,9 +42,9 @@ public class CollectionOp {
     @Test
     public void addReplica() throws IOException, SolrServerException {
         CollectionAdminRequest.AddReplica addReplica = new CollectionAdminRequest.AddReplica();
-        addReplica.setNode("172.16.2.30:8891_solr");
-        addReplica.setShardName("2016_1_3");
-        addReplica.setCollectionName("weibo");
+        addReplica.setNode("172.16.2.32:8890_solr");
+        addReplica.setShardName("2015_8");
+        addReplica.setCollectionName("admonitor");
         cloudSolrServer.request(addReplica);
     }
 
@@ -62,17 +62,17 @@ public class CollectionOp {
     @Test
     public void delShard() throws IOException, SolrServerException {
         CollectionAdminRequest.DeleteShard deleteShard = new CollectionAdminRequest.DeleteShard();
-        deleteShard.setShardName("2016W10");
-        deleteShard.setCollectionName("dmb2");
+        deleteShard.setShardName("2015_8");
+        deleteShard.setCollectionName("admonitor");
         cloudSolrServer.request(deleteShard);
     }
 
     @Test
     public void addShard() throws IOException, SolrServerException {
         CollectionAdminRequest.CreateShard createShard = new CollectionAdminRequest.CreateShard();
-        createShard.setShardName("2016W27");
-        createShard.setCollectionName("dmb2");
-        createShard.setNodeSet("172.16.2.31:9998_solr");
+        createShard.setShardName("2016W40");
+        createShard.setCollectionName("dmb");
+        createShard.setNodeSet("172.16.8.33:9999_solr");
         cloudSolrServer.request(createShard);
     }
 
@@ -82,6 +82,14 @@ public class CollectionOp {
         UpdateRequest updateRequest = new UpdateRequest();
         updateRequest.setParam(UpdateParams.COLLECTION, "video");
         updateRequest.deleteByQuery("*:*");
+        cloudSolrServer.request(updateRequest);
+    }
+
+    @Test
+    public void deleteAdmonitorData() throws IOException, SolrServerException {
+        UpdateRequest updateRequest = new UpdateRequest();
+        updateRequest.setParam(UpdateParams.COLLECTION, "admonitor");
+        updateRequest.deleteByQuery("weburl:*people.com.cn* AND source:bbs AND pubtime:[2016-06-23T00:00:00Z TO 2016-07-10T11:00:00Z]");
         cloudSolrServer.request(updateRequest);
     }
 

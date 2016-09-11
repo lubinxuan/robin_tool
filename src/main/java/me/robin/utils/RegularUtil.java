@@ -35,7 +35,7 @@ public class RegularUtil {
         Matcher matcher = pattern.matcher(str);
         if (matcher.find()) {
             Map<Integer, String> map = new HashMap<>();
-            for (int i = 0; i < matcher.groupCount(); i++) {
+            for (int i = 0; i <= matcher.groupCount(); i++) {
                 map.put(i, matcher.group(i));
             }
             return map;

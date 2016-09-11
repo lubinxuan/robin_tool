@@ -39,13 +39,22 @@ public class SolrShardConfig {
         //shardReader.addShardConfig("admonitor", "2015_11", "2015-11-01", "2015-12-01");
         //shardReader.addShardConfig("admonitor", "2015_12", "2015-12-01", "2016-01-01");
         ShardConfigHelper helper = new ShardConfigHelper(shardReader.getZooKeeper());
-        helper.addShardConfig("admonitor", "2016_6", "2016-06-01", "2016-07-01");
+        helper.addShardConfig("admonitor", "2016_9", "2016-09-01", "2016-10-01");
+        //helper.addShardConfig("weibo", "2016_7_12", "2016-07-01", "2017-01-01");
 
         CollectionAdminRequest.CreateShard createShard = new CollectionAdminRequest.CreateShard();
-        createShard.setShardName("2016_6");
+        createShard.setShardName("2016_9");
         createShard.setCollectionName("admonitor");
-        createShard.setNodeSet("172.16.2.32:8890_solr");
+        createShard.setNodeSet("172.16.2.32:8889_solr");
         cloudSolrClient.request(createShard);
+
+
+        /*createShard = new CollectionAdminRequest.CreateShard();
+        createShard.setShardName("2016_7_12");
+        createShard.setCollectionName("weibo");
+        createShard.setNodeSet("172.16.2.32:8888_solr");
+        cloudSolrClient.request(createShard);*/
+
         cloudSolrClient.close();
 /*        helper.delShardConfig("weibo", "2015_1_6");
         helper.delShardConfig("weibo", "2015_7_12");
@@ -74,14 +83,15 @@ public class SolrShardConfig {
 
     @Test
     public void createWeekRouteInfo() throws ParseException, IOException, KeeperException, InterruptedException {
-        String start = "2016-01-31";
+        String start = "2016-02-01";
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy'W'ww");
+        //SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy'M'MM");
         Date s = sdf.parse(start);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(s);
         Map<String, D> data = new TreeMap<String, D>(String::compareTo);
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 200; i++) {
             String yw = sdf2.format(calendar.getTime());
             Date date = calendar.getTime();
             data.compute(yw, new BiFunction<String, D, D>() {
@@ -99,7 +109,7 @@ public class SolrShardConfig {
             calendar.add(Calendar.DATE, 1);
         }
 
-        List<ShardRouter.Shard> shardList = new ArrayList<>();
+        /*List<ShardRouter.Shard> shardList = new ArrayList<>();
         for (Map.Entry<String, D> entry : data.entrySet()) {
             calendar.setTime(entry.getValue().e);
             calendar.add(Calendar.DATE, 1);
@@ -113,7 +123,7 @@ public class SolrShardConfig {
         ShardRouter.ShardReader shardReader = new ShardRouter.ShardReader("172.16.8.33:4181");
         ShardConfigHelper helper = new ShardConfigHelper(shardReader.getZooKeeper());
         helper.addShardConfig("dmb", shardList);
-
+*/
         System.out.println();
 
     }
