@@ -26,9 +26,9 @@ public class ShardConfigHelper extends ShardRouter.ShardReader {
         JSONObject object;
         if (null != data) {
             object = JSON.parseObject(data, JSONObject.class);
-            if (object.containsKey(shard)) {
+            /*if (object.containsKey(shard)) {
                 return;
-            }
+            }*/
         } else {
             object = new JSONObject();
         }

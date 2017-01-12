@@ -1,0 +1,24 @@
+{
+  "add": {
+    "overwrite": true,
+    "doc": {
+      "id": 1,
+      "title":"1"
+    }
+  },
+  "add": {
+    "overwrite": true,
+    "boost": 2.5,
+    "doc": {
+      "id": 2,
+      "title":"2"
+    }
+  },
+  "add": {
+    "overwrite": true,
+    "doc": {
+      "id": 3,
+      "title":"3"
+    }
+  }
+}

@@ -42,8 +42,8 @@ public class CollectionOp {
     @Test
     public void addReplica() throws IOException, SolrServerException {
         CollectionAdminRequest.AddReplica addReplica = new CollectionAdminRequest.AddReplica();
-        addReplica.setNode("172.16.2.32:8890_solr");
-        addReplica.setShardName("2015_8");
+        addReplica.setNode("172.16.2.30:8889_solr");
+        addReplica.setShardName("2017_1");
         addReplica.setCollectionName("admonitor");
         cloudSolrServer.request(addReplica);
     }
@@ -62,15 +62,15 @@ public class CollectionOp {
     @Test
     public void delShard() throws IOException, SolrServerException {
         CollectionAdminRequest.DeleteShard deleteShard = new CollectionAdminRequest.DeleteShard();
-        deleteShard.setShardName("2015_8");
-        deleteShard.setCollectionName("admonitor");
+        deleteShard.setShardName("2016W46");
+        deleteShard.setCollectionName("dmb");
         cloudSolrServer.request(deleteShard);
     }
 
     @Test
     public void addShard() throws IOException, SolrServerException {
         CollectionAdminRequest.CreateShard createShard = new CollectionAdminRequest.CreateShard();
-        createShard.setShardName("2016W40");
+        createShard.setShardName("2017W04");
         createShard.setCollectionName("dmb");
         createShard.setNodeSet("172.16.8.33:9999_solr");
         cloudSolrServer.request(createShard);

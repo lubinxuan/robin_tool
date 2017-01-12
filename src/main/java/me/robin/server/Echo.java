@@ -24,12 +24,27 @@ class Echo {
     }
 
     public void echo(Object msg) throws Exception {
-        serverOut.writeUTF(String.valueOf(msg) + "\r\nc:");
-        flush();
+        _echo(String.valueOf(msg) + "\r\nc:");
     }
 
     public void _echo(Object msg) throws Exception {
-        serverOut.writeUTF(String.valueOf(msg));
+        String message;
+        if (msg instanceof String) {
+            message = (String) msg;
+        } else {
+            message = String.valueOf(msg);
+        }
+        byte[] data = message.getBytes(Const.UTF_8);
+        int idx = 0;
+        while (idx + 1 < data.length) {
+            int len = 1000;
+            if (idx + 1000 >= data.length) {
+                len = data.length - idx;
+            }
+            serverOut.write(data, idx, len);
+            idx += len;
+
+        }
         flush();
     }
 

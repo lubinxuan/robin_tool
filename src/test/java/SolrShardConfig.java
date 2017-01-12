@@ -39,21 +39,26 @@ public class SolrShardConfig {
         //shardReader.addShardConfig("admonitor", "2015_11", "2015-11-01", "2015-12-01");
         //shardReader.addShardConfig("admonitor", "2015_12", "2015-12-01", "2016-01-01");
         ShardConfigHelper helper = new ShardConfigHelper(shardReader.getZooKeeper());
-        helper.addShardConfig("admonitor", "2016_9", "2016-09-01", "2016-10-01");
-        //helper.addShardConfig("weibo", "2016_7_12", "2016-07-01", "2017-01-01");
+        helper.addShardConfig("admonitor", "2017_1", "2017-01-01", "2017-02-01");
+        //helper.addShardConfig("weibo", "2017_1_6", "2017-01-01", "2017-07-01");
 
-        CollectionAdminRequest.CreateShard createShard = new CollectionAdminRequest.CreateShard();
-        createShard.setShardName("2016_9");
-        createShard.setCollectionName("admonitor");
-        createShard.setNodeSet("172.16.2.32:8889_solr");
-        cloudSolrClient.request(createShard);
+       //CollectionAdminRequest.CreateShard createShard = new CollectionAdminRequest.CreateShard();
+       //createShard.setShardName("2017_1");
+       //createShard.setCollectionName("admonitor");
+       //createShard.setNodeSet("172.16.2.30:8889_solr");
+       //cloudSolrClient.request(createShard);
+
+       //createShard.setShardName("2016_12");
+       //createShard.setCollectionName("admonitor");
+       //createShard.setNodeSet("172.16.2.30:8889_solr");
+       //cloudSolrClient.request(createShard);
 
 
-        /*createShard = new CollectionAdminRequest.CreateShard();
-        createShard.setShardName("2016_7_12");
-        createShard.setCollectionName("weibo");
-        createShard.setNodeSet("172.16.2.32:8888_solr");
-        cloudSolrClient.request(createShard);*/
+        //createShard = new CollectionAdminRequest.CreateShard();
+        //createShard.setShardName("2017_1_6");
+        //createShard.setCollectionName("weibo");
+        //createShard.setNodeSet("172.16.2.30:8888_solr");
+        //cloudSolrClient.request(createShard);
 
         cloudSolrClient.close();
 /*        helper.delShardConfig("weibo", "2015_1_6");
@@ -83,7 +88,7 @@ public class SolrShardConfig {
 
     @Test
     public void createWeekRouteInfo() throws ParseException, IOException, KeeperException, InterruptedException {
-        String start = "2016-02-01";
+        String start = "2016-12-21";
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy'W'ww");
         //SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy'M'MM");
