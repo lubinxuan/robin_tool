@@ -99,7 +99,6 @@ public class JMSPersist implements Closeable {
 
         Runnable runnable = () -> {
             while (!shutdown) {
-
                 if (!jmsHandler.available()) {
                     synchronized (jmsHandler) {
                         try {
@@ -142,6 +141,9 @@ public class JMSPersist implements Closeable {
                 } else {
                     exec(fileContent, file);
                 }
+            }
+            if (null != service) {
+                service.shutdownNow();
             }
         };
 
