@@ -31,7 +31,7 @@ public class ServiceController {
 
     public ServiceController(int port, CommandHandler commandHandler) {
         this.port = port;
-        this.commandHandler = commandHandler == null ? new CommandHandler.Basehandler() : commandHandler;
+        this.commandHandler = commandHandler == null ? new CommandHandler() : commandHandler;
         new Thread(new Daemon()).start();
     }
 
