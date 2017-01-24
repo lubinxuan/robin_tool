@@ -1,8 +1,5 @@
 package me.robin.jms;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -12,21 +9,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by xuanlubin on 2016/6/8.
  */
-public class JMSPersist {
+public class JMSPersist implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSPersist.class);
 
@@ -36,11 +34,15 @@ public class JMSPersist {
 
     private File tmpStoreDir;
 
-    private final Queue<File> fileQueue = new LinkedList<>();
+    private final BlockingQueue<File> fileQueue = new LinkedBlockingQueue<>();
 
     private ExecutorService service;
 
-    private JMSHandler jmsHandler;
+    private final JMSHandler jmsHandler;
+
+    private Thread thread;
+
+    private boolean shutdown = false;
 
     public JMSPersist(JMSHandler jmsHandler, String fileDir) {
         this.jmsHandler = jmsHandler;
@@ -95,49 +97,57 @@ public class JMSPersist {
             throw new RuntimeException("异常文件提交监听线程启动失败");
         }
 
+        Runnable runnable = () -> {
+            while (!shutdown) {
 
-        new Timer("JMS_FILE_HANDLER_" + tmpStoreDir.getAbsolutePath()).schedule(new TimerTask() {
-            @Override
-            public void run() {
-                while (true) {
-
-                    if (!jmsHandler.available()) {
+                if (!jmsHandler.available()) {
+                    synchronized (jmsHandler) {
                         try {
-                            TimeUnit.SECONDS.sleep(5);
+                            jmsHandler.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
+                }
 
-                    File file = fileQueue.poll();
-                    if (null == file) {
-                        break;
-                    }
-                    logger.debug("开始处理:{}", file);
-                    String fileContent = null;
-                    try {
-                        fileContent = IOUtils.toString(file.toURI(), "utf-8");
-                    } catch (IOException e) {
-                        logger.error("fileContent读取异常! " + file.getAbsolutePath(), e);
-                        return;
-                    }
+                File file;
+                try {
+                    file = fileQueue.take();
+                } catch (InterruptedException e) {
+                    continue;
+                }
+                logger.debug("开始处理:{}", file);
+                String fileContent;
+                try {
+                    fileContent = IOUtils.toString(file.toURI(), "utf-8");
+                } catch (IOException e) {
+                    logger.error("fileContent读取异常! " + file.getAbsolutePath(), e);
+                    return;
+                }
 
-                    if (StringUtils.isBlank(fileContent)) {
-                        return;
-                    }
+                if (StringUtils.isBlank(fileContent)) {
+                    return;
+                }
 
-                    if (null != service) {
-                        String _fileContent = fileContent;
-                        service.execute(() -> exec(_fileContent, file));
-                    } else {
-                        exec(fileContent, file);
-                    }
-
-
+                if (null != service) {
+                    service.execute(() -> {
+                        try {
+                            exec(fileContent, file);
+                        } finally {
+                            synchronized (jmsHandler) {
+                                jmsHandler.notify();
+                            }
+                        }
+                    });
+                } else {
+                    exec(fileContent, file);
                 }
             }
-        }, 0, 1000);
+        };
 
+        thread = new Thread(runnable);
+        thread.setName("jms_file_schedule_thread");
+        thread.start();
     }
 
     private void exec(String fileContent, File file) {
@@ -178,5 +188,14 @@ public class JMSPersist {
         } catch (Throwable r) {
             logger.error("文件写出异常~~~", r);
         }
+    }
+
+    public int fileQueueSize() {
+        return fileQueue.size();
+    }
+
+    @Override
+    public void close() throws IOException {
+        thread.interrupt();
     }
 }

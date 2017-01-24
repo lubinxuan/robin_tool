@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * Created by xuanlubin on 2016/6/8.
@@ -37,6 +38,8 @@ public class JMSProcessChannel<T> implements AutoCloseable {
     private ChannelHandler<T> consumer;
 
     private BlockingQueue<T> dataQueue = new LinkedBlockingQueue<>();
+
+    private Consumer<List<T>> dataLoadCompleted;
 
     private boolean shutdown = false;
 
@@ -113,6 +116,11 @@ public class JMSProcessChannel<T> implements AutoCloseable {
         }
     }
 
+
+    public void onLoad(Consumer<List<T>> consumer) {
+        this.dataLoadCompleted = consumer;
+    }
+
     private void load() {
 
         if (!tmpStore.exists() || tmpStore.isDirectory()) {
@@ -123,10 +131,15 @@ public class JMSProcessChannel<T> implements AutoCloseable {
         try {
             Type type = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
             List<String> contentList = FileUtils.readLines(tmpStore, Charset.forName("utf-8"));
+            List<T> tList = new ArrayList<>(contentList.size());
             for (String content : contentList) {
                 T t = JSON.parseObject(content, type);
-                dataQueue.add(t);
+                tList.add(t);
             }
+            if (null != dataLoadCompleted) {
+                dataLoadCompleted.accept(tList);
+            }
+            dataQueue.addAll(tList);
             FileUtils.deleteQuietly(tmpStore);
         } catch (Exception e) {
             logger.error("无法加载临时文件::", e);
