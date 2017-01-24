@@ -13,12 +13,9 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -145,6 +142,7 @@ public class JMSPersist implements Closeable {
             if (null != service) {
                 service.shutdownNow();
             }
+            logger.info("JMS任务调度线程退出!!!!");
         };
 
         thread = new Thread(runnable);
