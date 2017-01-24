@@ -1,6 +1,8 @@
 package me.robin.server;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ import java.util.Map;
  * ie.
  */
 public class CommandHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
 
     private ServiceController controller;
 
@@ -40,6 +44,7 @@ public class CommandHandler {
         } else {
             actionMap.put(command, consumer);
         }
+        logger.info("注册指令:{} 描述:{}", command, consumer);
     }
 
     public static void register(CommandAction consumer) {

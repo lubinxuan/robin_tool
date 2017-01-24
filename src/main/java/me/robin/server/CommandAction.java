@@ -8,5 +8,9 @@ public interface CommandAction {
         return false;
     }
 
+    default String desc() {
+        return "desc for command:" + this;
+    }
+
     Object process(String command);
 }
