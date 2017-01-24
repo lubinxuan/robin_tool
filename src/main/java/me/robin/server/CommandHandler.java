@@ -44,7 +44,7 @@ public class CommandHandler {
         } else {
             actionMap.put(command, consumer);
         }
-        logger.info("注册指令:{} 描述:{}", command, consumer);
+        logger.info("注册指令:{} 描述:{}", command, consumer.desc());
     }
 
     public static void register(CommandAction consumer) {
