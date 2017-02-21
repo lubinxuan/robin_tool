@@ -1,27 +1,27 @@
 package me.robin.jms;
 
+import me.robin.utils.LimitFileStore;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.monitor.FileAlterationListener;
-import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
-import org.apache.commons.io.monitor.FileAlterationMonitor;
-import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 /**
  * Created by xuanlubin on 2016/6/8.
  */
-public class JMSPersist implements Closeable {
+public class JMSPersist<T> implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSPersist.class);
 
@@ -29,114 +29,95 @@ public class JMSPersist implements Closeable {
 
     private static final String DEFAULT_TMP_STORE_PATH = "./jms_tmp";
 
-    private File tmpStoreDir;
+    private ThreadPoolExecutor service;
 
-    private final BlockingQueue<File> fileQueue = new LinkedBlockingQueue<>();
-
-    private ExecutorService service;
-
-    private final JMSHandler jmsHandler;
-
+    private final JMSHandler<T> jmsHandler;
+    private final Function<String, T> dataConverter;
+    private Map<File, T> bufferMap = new ConcurrentHashMap<>();
     private Thread thread;
 
     private boolean shutdown = false;
 
-    public JMSPersist(JMSHandler jmsHandler, String fileDir) {
+    private final LimitFileStore limitFileStore;
+
+    public JMSPersist(Function<String, T> dataConverter, JMSHandler<T> jmsHandler, String fileDir) {
         this.jmsHandler = jmsHandler;
-        init(fileDir);
+        this.dataConverter = dataConverter;
+        try {
+            this.limitFileStore = new LimitFileStore(StringUtils.isBlank(fileDir) ? DEFAULT_TMP_STORE_PATH : fileDir);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        init();
     }
 
 
-    public JMSPersist(JMSHandler jmsHandler) {
-        this(jmsHandler, "./jms_tmp");
+    public JMSPersist(Function<String, T> dataConverter, JMSHandler<T> jmsHandler) {
+        this(dataConverter, jmsHandler, DEFAULT_TMP_STORE_PATH);
     }
 
-    public void setService(ExecutorService service) {
+    public void setService(ThreadPoolExecutor service) {
         this.service = service;
     }
 
-    private void createTmpDir(String fileDir) {
-
-        if (StringUtils.isBlank(fileDir)) {
-            fileDir = DEFAULT_TMP_STORE_PATH;
-        }
-
-        tmpStoreDir = new File(fileDir.trim());
-        if (!tmpStoreDir.exists() || tmpStoreDir.isFile()) {
-            tmpStoreDir.mkdirs();
-        }
-    }
-
-    private void init(String store) {
-        //创建文件存放目录
-        createTmpDir(store);
-
-        FileAlterationObserver observer = new FileAlterationObserver(tmpStoreDir, file -> file.isFile() && file.getName().endsWith(FILE_SUFFIX));
-        FileAlterationListener listener = new FileAlterationListenerAdaptor() {
-            @Override
-            public void onFileCreate(File file) {
-                offer(file);
-            }
-        };
-
-        File[] listFiles = observer.getDirectory().listFiles(observer.getFileFilter());
-        if (null != listFiles && listFiles.length > 0) {
-            for (File file : listFiles) {
-                offer(file);
-            }
-        }
-
-        observer.addListener(listener);
-
-        try {
-            new FileAlterationMonitor(1000, observer).start();
-        } catch (Throwable e) {
-            throw new RuntimeException("异常文件提交监听线程启动失败");
-        }
-
+    private void init() {
         Runnable runnable = () -> {
+            loop:
             while (!shutdown) {
-                if (!jmsHandler.available()) {
-                    synchronized (jmsHandler) {
-                        try {
-                            jmsHandler.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+                File directory;
 
-                File file;
                 try {
-                    file = fileQueue.take();
+                    directory = limitFileStore.nextProcessDirectory();
                 } catch (InterruptedException e) {
                     continue;
                 }
-                logger.debug("开始处理:{}", file);
-                String fileContent;
-                try {
-                    fileContent = IOUtils.toString(file.toURI(), "utf-8");
-                } catch (IOException e) {
-                    logger.error("fileContent读取异常! " + file.getAbsolutePath(), e);
-                    return;
-                }
 
-                if (StringUtils.isBlank(fileContent)) {
-                    return;
-                }
-
-                if (null != service) {
-                    service.execute(() -> {
+                File[] dataFiles = directory.listFiles(file -> file.isFile() && file.getName().endsWith(FILE_SUFFIX));
+                logger.info("开始处理数据目录:{}", directory.getAbsolutePath());
+                if (null != dataFiles && dataFiles.length > 0) {
+                    for (File dataFile : dataFiles) {
+                        logger.debug("开始处理:{}", dataFile);
+                        String fileContent;
                         try {
-                            exec(fileContent, file);
-                        } finally {
+                            fileContent = IOUtils.toString(dataFile.toURI(), "utf-8");
+                        } catch (IOException e) {
+                            logger.error("fileContent读取异常! " + dataFile.getAbsolutePath(), e);
+                            continue;
+                        }
+
+                        if (StringUtils.isBlank(fileContent)) {
+                            continue;
+                        }
+
+                        T data = dataConverter.apply(fileContent);
+                        if (null != service) {
+                            if (limitFileStore.checkProcessAvailable(dataFile)) {
+                                service.execute(() -> {
+                                    try {
+                                        exec(data, dataFile);
+                                    } finally {
+                                        synchronized (jmsHandler) {
+                                            jmsHandler.notify();
+                                        }
+                                        this.limitFileStore.removeProcessFilter(dataFile);
+                                    }
+                                });
+                            }
+                        } else {
+                            exec(data, dataFile);
+                        }
+                        if (!jmsHandler.available()) {
                             synchronized (jmsHandler) {
-                                jmsHandler.notify();
+                                try {
+                                    jmsHandler.wait();
+                                } catch (InterruptedException e) {
+                                    continue loop;
+                                }
                             }
                         }
-                    });
+                    }
                 } else {
-                    exec(fileContent, file);
+                    this.limitFileStore.deleteStoreFile(directory);
                 }
             }
             if (null != service) {
@@ -150,19 +131,14 @@ public class JMSPersist implements Closeable {
         thread.start();
     }
 
-    private void exec(String fileContent, File file) {
+    private void exec(T data, File file) {
         long start = System.currentTimeMillis();
-        if (jmsHandler.handle(fileContent)) {
+        if (jmsHandler.handle(data)) {
             logger.debug("文件处理完成:{}    {}", file, System.currentTimeMillis() - start);
-            file.delete();
+            this.limitFileStore.deleteStoreFile(file);
         } else {
             logger.info("文件处理异常，重新入列");
-            fileQueue.offer(file);
         }
-    }
-
-    private void offer(File file) {
-        fileQueue.offer(file);
     }
 
     private static final DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -178,24 +154,21 @@ public class JMSPersist implements Closeable {
         synchronized (df) {
             date = df.format(new Date());
         }
-        String filePath = "jms_" + date + "_" + id.incrementAndGet() + ".tmp";
-        File back = new File(tmpStoreDir, filePath);
+        String filePath = "jms_" + date + "_" + id.incrementAndGet() + ".jms";
         try {
-            OutputStream os = new FileOutputStream(back);
-            IOUtils.write(fileContent, os, "utf-8");
-            IOUtils.closeQuietly(os);
-            back.renameTo(new File(tmpStoreDir, filePath.replace(".tmp", FILE_SUFFIX)));
+            this.limitFileStore.writeFile(filePath, fileContent);
         } catch (Throwable r) {
             logger.error("文件写出异常~~~", r);
         }
     }
 
-    public int fileQueueSize() {
-        return fileQueue.size();
-    }
-
     @Override
     public void close() throws IOException {
         thread.interrupt();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

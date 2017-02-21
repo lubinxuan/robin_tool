@@ -70,9 +70,9 @@ public class CollectionOp {
     @Test
     public void addShard() throws IOException, SolrServerException {
         CollectionAdminRequest.CreateShard createShard = new CollectionAdminRequest.CreateShard();
-        createShard.setShardName("2017W04");
+        createShard.setShardName("2017W12");
         createShard.setCollectionName("dmb");
-        createShard.setNodeSet("172.16.8.33:9999_solr");
+        createShard.setNodeSet("172.16.2.15:9999_solr");
         cloudSolrServer.request(createShard);
     }
 
