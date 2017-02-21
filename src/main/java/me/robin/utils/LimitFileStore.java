@@ -119,7 +119,7 @@ public class LimitFileStore {
 
     public synchronized void offerProcessDirectory(File directory) {
         if (indexDirectoryQueue.add(directory.getName())) {
-            logger.info("加入索引目录:{}", directory.getAbsolutePath());
+            logger.info("加入数据目录:{}", directory.getAbsolutePath());
             this.notify();
         }
     }

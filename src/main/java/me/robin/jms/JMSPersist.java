@@ -130,7 +130,7 @@ public class JMSPersist<T> implements Closeable {
             this.limitFileStore.deleteStoreFile(file);
             return;
         }
-        logger.debug("开始处理:{}", file.getAbsolutePath());
+        logger.info("开始处理:{}", file.getAbsolutePath());
         T data = dataConverter.apply(fileContent);
         long start = System.currentTimeMillis();
         if (jmsHandler.handle(data)) {
