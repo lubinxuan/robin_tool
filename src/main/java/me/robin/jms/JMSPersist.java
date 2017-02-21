@@ -141,22 +141,16 @@ public class JMSPersist<T> implements Closeable {
     private static final DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
     private AtomicLong id = new AtomicLong();
 
-    public void writeFile(String fileContent) {
-
+    public void writeFile(String fileContent) throws IOException {
         if (StringUtils.isBlank(fileContent)) {
             return;
         }
-
         String date;
         synchronized (df) {
             date = df.format(new Date());
         }
         String filePath = "jms_" + date + "_" + id.incrementAndGet() + ".jms";
-        try {
-            this.limitFileStore.writeFile(filePath, fileContent);
-        } catch (Throwable r) {
-            logger.error("文件写出异常~~~", r);
-        }
+        this.limitFileStore.writeFile(filePath, fileContent);
     }
 
     @Override
