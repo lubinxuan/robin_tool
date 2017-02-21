@@ -76,7 +76,6 @@ public class JMSPersist<T> implements Closeable {
                 logger.info("开始处理数据目录:{}", directory.getAbsolutePath());
                 if (null != dataFiles && dataFiles.length > 0) {
                     for (File dataFile : dataFiles) {
-                        logger.debug("开始处理:{}", dataFile);
                         if (null != service) {
                             if (limitFileStore.checkProcessAvailable(dataFile)) {
                                 service.execute(() -> {
@@ -131,6 +130,7 @@ public class JMSPersist<T> implements Closeable {
             this.limitFileStore.deleteStoreFile(file);
             return;
         }
+        logger.debug("开始处理:{}", file.getAbsolutePath());
         T data = dataConverter.apply(fileContent);
         long start = System.currentTimeMillis();
         if (jmsHandler.handle(data)) {
