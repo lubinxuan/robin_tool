@@ -103,7 +103,7 @@ public class JMSPersist<T> implements Closeable {
                         }
                     }
                 } else {
-                    this.limitFileStore.deleteStoreFile(directory);
+                    this.limitFileStore.deleteDirectory(directory);
                 }
             }
             if (null != service) {

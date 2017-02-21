@@ -204,15 +204,16 @@ public class LimitFileStore {
 
     public File nextProcessDirectory() throws InterruptedException {
         while (true) {
-            String indexDirectoryName = indexDirectoryQueue.first();
-            File indexDirectory = new File(this.fileStore, indexDirectoryName);
-            if (indexDirectory.exists() && indexDirectory.isDirectory()) {
-                indexDirectoryQueue.remove(indexDirectoryName);
-                return indexDirectory;
-            } else {
+            if (indexDirectoryQueue.isEmpty()) {
                 synchronized (this) {
                     this.wait();
                 }
+            }
+            String indexDirectoryName = indexDirectoryQueue.first();
+            indexDirectoryQueue.remove(indexDirectoryName);
+            File indexDirectory = new File(this.fileStore, indexDirectoryName);
+            if (indexDirectory.exists() && indexDirectory.isDirectory()) {
+                return indexDirectory;
             }
         }
     }
