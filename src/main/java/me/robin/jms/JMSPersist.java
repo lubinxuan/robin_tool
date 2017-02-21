@@ -128,6 +128,7 @@ public class JMSPersist<T> implements Closeable {
         }
 
         if (StringUtils.isBlank(fileContent)) {
+            this.limitFileStore.deleteStoreFile(file);
             return;
         }
         T data = dataConverter.apply(fileContent);
