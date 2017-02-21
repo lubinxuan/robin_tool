@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -33,7 +31,6 @@ public class JMSPersist<T> implements Closeable {
 
     private final JMSHandler<T> jmsHandler;
     private final Function<String, T> dataConverter;
-    private Map<File, T> bufferMap = new ConcurrentHashMap<>();
     private Thread thread;
 
     private boolean shutdown = false;
