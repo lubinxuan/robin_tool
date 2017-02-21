@@ -77,24 +77,11 @@ public class JMSPersist<T> implements Closeable {
                 if (null != dataFiles && dataFiles.length > 0) {
                     for (File dataFile : dataFiles) {
                         logger.debug("开始处理:{}", dataFile);
-                        String fileContent;
-                        try {
-                            fileContent = IOUtils.toString(dataFile.toURI(), "utf-8");
-                        } catch (IOException e) {
-                            logger.error("fileContent读取异常! " + dataFile.getAbsolutePath(), e);
-                            continue;
-                        }
-
-                        if (StringUtils.isBlank(fileContent)) {
-                            continue;
-                        }
-
-                        T data = dataConverter.apply(fileContent);
                         if (null != service) {
                             if (limitFileStore.checkProcessAvailable(dataFile)) {
                                 service.execute(() -> {
                                     try {
-                                        exec(data, dataFile);
+                                        exec(dataFile);
                                     } finally {
                                         synchronized (jmsHandler) {
                                             jmsHandler.notify();
@@ -102,18 +89,18 @@ public class JMSPersist<T> implements Closeable {
                                         this.limitFileStore.removeProcessFilter(dataFile);
                                     }
                                 });
-                            }
-                        } else {
-                            exec(data, dataFile);
-                        }
-                        if (!jmsHandler.available()) {
-                            synchronized (jmsHandler) {
-                                try {
-                                    jmsHandler.wait();
-                                } catch (InterruptedException e) {
-                                    continue loop;
+                                if (!jmsHandler.available()) {
+                                    synchronized (jmsHandler) {
+                                        try {
+                                            jmsHandler.wait();
+                                        } catch (InterruptedException e) {
+                                            continue loop;
+                                        }
+                                    }
                                 }
                             }
+                        } else {
+                            exec(dataFile);
                         }
                     }
                 } else {
@@ -131,7 +118,19 @@ public class JMSPersist<T> implements Closeable {
         thread.start();
     }
 
-    private void exec(T data, File file) {
+    private void exec(File file) {
+        String fileContent;
+        try {
+            fileContent = IOUtils.toString(file.toURI(), "utf-8");
+        } catch (IOException e) {
+            logger.error("fileContent读取异常! " + file.getAbsolutePath(), e);
+            return;
+        }
+
+        if (StringUtils.isBlank(fileContent)) {
+            return;
+        }
+        T data = dataConverter.apply(fileContent);
         long start = System.currentTimeMillis();
         if (jmsHandler.handle(data)) {
             logger.debug("文件处理完成:{}    {}", file, System.currentTimeMillis() - start);
